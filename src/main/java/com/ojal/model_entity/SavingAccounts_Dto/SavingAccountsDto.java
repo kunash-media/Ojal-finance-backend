@@ -1,0 +1,35 @@
+package com.ojal.model_entity.SavingAccounts_Dto;
+
+import java.math.BigDecimal;
+
+public class SavingAccountsDto {
+
+    private BigDecimal interestRate;
+    private BigDecimal minimumBalance;
+    private BigDecimal initialDeposit;
+
+    // Getters and setters
+    public BigDecimal getInterestRate() {
+        return interestRate;
+    }
+
+    public void setInterestRate(BigDecimal interestRate) {
+        this.interestRate = interestRate;
+    }
+
+    public BigDecimal getMinimumBalance() {
+        return minimumBalance;
+    }
+
+    public void setMinimumBalance(BigDecimal minimumBalance) {
+        this.minimumBalance = minimumBalance;
+    }
+
+    public BigDecimal getInitialDeposit() {
+        return initialDeposit;
+    }
+
+    public void setInitialDeposit(BigDecimal initialDeposit) {
+        this.initialDeposit = initialDeposit;
+    }
+}
