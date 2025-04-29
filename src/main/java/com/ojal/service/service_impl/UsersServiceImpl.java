@@ -1,7 +1,7 @@
 package com.ojal.service.service_impl;
 
 import com.ojal.model_entity.UsersEntity;
-import com.ojal.model_entity.Users_Dto.UserRegistrationDto;
+import com.ojal.model_entity.dto.request.UserRegistrationDto;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.UsersService;
 import jakarta.persistence.EntityNotFoundException;

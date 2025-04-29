@@ -1,8 +1,7 @@
 package com.ojal.service;
 
 import com.ojal.model_entity.UsersEntity;
-import com.ojal.model_entity.Users_Dto.UserRegistrationDto;
-import org.springframework.http.ResponseEntity;
+import com.ojal.model_entity.dto.request.UserRegistrationDto;
 
 public interface UsersService {
 

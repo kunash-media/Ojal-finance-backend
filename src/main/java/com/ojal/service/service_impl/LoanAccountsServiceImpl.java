@@ -2,7 +2,7 @@ package com.ojal.service.service_impl;
 
 import com.ojal.model_entity.BaseAccountEntity;
 import com.ojal.model_entity.LoanAccountsEntity;
-import com.ojal.model_entity.LoanAccounts_Dto.LoanAccountsDto;
+import com.ojal.model_entity.dto.request.LoanAccountsDto;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.LoanAccountsRepository;
 import com.ojal.repository.UsersRepository;

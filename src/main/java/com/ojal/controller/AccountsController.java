@@ -1,14 +1,12 @@
 package com.ojal.controller;
 
 import com.ojal.enum_accounts.AccountType;
-import com.ojal.model_entity.FdAccountsEntity;
-import com.ojal.model_entity.FdAccounts_Dto.FdAccountsDto;
-import com.ojal.model_entity.LoanAccountsEntity;
-import com.ojal.model_entity.LoanAccounts_Dto.LoanAccountsDto;
-import com.ojal.model_entity.RdAccountsEntity;
-import com.ojal.model_entity.RdAccounts_Dto.RdAccountsDto;
-import com.ojal.model_entity.SavingAccountsEntity;
-import com.ojal.model_entity.SavingAccounts_Dto.SavingAccountsDto;
+import com.ojal.model_entity.*;
+import com.ojal.model_entity.dto.request.FdAccountsDto;
+import com.ojal.model_entity.dto.request.LoanAccountsDto;
+import com.ojal.model_entity.dto.request.RdAccountsDto;
+import com.ojal.model_entity.dto.request.SavingAccountsDto;
+import com.ojal.model_entity.dto.response.RdUserResponse;
 import com.ojal.service.FdAccountsService;
 import com.ojal.service.LoanAccountsService;
 import com.ojal.service.RdAccountsService;
@@ -17,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -50,12 +51,37 @@ public class AccountsController {
     }
 
     @PostMapping("/{userId}/rd")
-    public ResponseEntity<AccountResponse> createRdAccount(@PathVariable String userId, @RequestBody RdAccountsDto request) {
+    public ResponseEntity<RdUserResponse> createRdAccount(
+            @PathVariable String userId,
+            @RequestBody RdAccountsDto request) {
 
-        RdAccountsEntity account = rdAccountService.createAccount(userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AccountResponse(account.getAccountNumber(), AccountType.RD_AC));
+        // 1. Create RD account and get updated user
+        UsersEntity user = rdAccountService.createAccount(userId, request);
+
+        // 2. Convert to RdUserResponse
+        RdUserResponse response = new RdUserResponse();
+        response.setUserId(user.getUserId());
+        response.setName(user.getName()); // Or other user fields you want to include
+
+        // 3. Convert RD accounts to AccountResponse list
+        List<AccountResponse> accountResponses = user.getRdAccounts().stream()
+                .map(account -> new AccountsController.AccountResponse(
+                        account.getAccountNumber(),
+                        AccountType.RD_AC))
+                .collect(Collectors.toList());
+        response.setRdAccounts(accountResponses);
+
+        // 4. Return response
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+//    @PostMapping("/{userId}/rd")
+//    public ResponseEntity<AccountResponse> createRdAccount(@PathVariable String userId, @RequestBody RdAccountsDto request) {
+//
+//        RdAccountsEntity account = rdAccountService.createAccount(userId, request);
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(new AccountResponse(account.getAccountNumber(), AccountType.RD_AC));
+//    }
 
     @PostMapping("/{userId}/fd")
     public ResponseEntity<AccountResponse> createFdAccount(@PathVariable String userId, @RequestBody FdAccountsDto request) {
@@ -75,6 +101,7 @@ public class AccountsController {
 
     // Response class
     public static class AccountResponse {
+
         private String accountNumber;
         private AccountType accountType;
 

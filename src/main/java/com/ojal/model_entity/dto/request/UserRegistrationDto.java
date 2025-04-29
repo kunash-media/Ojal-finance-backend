@@ -1,4 +1,4 @@
-package com.ojal.model_entity.Users_Dto;
+package com.ojal.model_entity.dto.request;
 
 public class UserRegistrationDto {
     private String name;

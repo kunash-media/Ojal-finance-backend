@@ -1,4 +1,4 @@
-package com.ojal.model_entity.LoanAccounts_Dto;
+package com.ojal.model_entity.dto.request;
 
 import com.ojal.model_entity.LoanAccountsEntity;
 

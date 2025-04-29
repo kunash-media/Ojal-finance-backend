@@ -2,7 +2,7 @@ package com.ojal.service.service_impl;
 
 import com.ojal.model_entity.BaseAccountEntity;
 import com.ojal.model_entity.RdAccountsEntity;
-import com.ojal.model_entity.RdAccounts_Dto.RdAccountsDto;
+import com.ojal.model_entity.dto.request.RdAccountsDto;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.RdAccountsRepository;
 import com.ojal.repository.UsersRepository;
@@ -35,18 +35,21 @@ public class RdAccountsServiceImpl implements RdAccountsService {
         this.userService = userService;
     }
 
+
     @Override
     @Transactional
-    public RdAccountsEntity createAccount(String userId, RdAccountsDto request) {
+    public UsersEntity createAccount(String userId, RdAccountsDto request) {
+        // 1. Find the user
         UsersEntity user = userService.findByUserId(userId);
 
+        // 2. Create RD Account
         RdAccountsEntity rdAccount = new RdAccountsEntity();
         rdAccount.setDepositAmount(request.getDepositAmount());
         rdAccount.setInterestRate(request.getInterestRate());
         rdAccount.setTenureMonths(request.getTenureMonths());
         rdAccount.setMaturityDate(LocalDate.now().plusMonths(request.getTenureMonths()));
 
-        // Calculate maturity amount (simplified)
+        // 3. Calculate Maturity Amount (same as your original logic)
         BigDecimal monthlyRate = request.getInterestRate().divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
         BigDecimal totalDeposits = request.getDepositAmount().multiply(BigDecimal.valueOf(request.getTenureMonths()));
         BigDecimal interest = request.getDepositAmount()
@@ -54,13 +57,42 @@ public class RdAccountsServiceImpl implements RdAccountsService {
                 .multiply(BigDecimal.valueOf(request.getTenureMonths() * (request.getTenureMonths() + 1) / 2));
         rdAccount.setMaturityAmount(totalDeposits.add(interest));
 
-        // Associate with user
+        // 4. Associate RD Account with User
         user.addRdAccount(rdAccount);
 
-        // Save both entities
-        usersRepository.save(user);
-        return rdAccount;
+        // 5. Save (JPA automatically cascades if properly mapped)
+        return usersRepository.save(user); // Returns updated user with new RD account
     }
+
+//    @Override
+//    @Transactional
+//    public RdAccountsEntity createAccount(String userId, RdAccountsDto request) {
+//
+//        UsersEntity user = userService.findByUserId(userId);
+//
+//        RdAccountsEntity rdAccount = new RdAccountsEntity();
+//
+//        rdAccount.setDepositAmount(request.getDepositAmount());
+//        rdAccount.setInterestRate(request.getInterestRate());
+//        rdAccount.setTenureMonths(request.getTenureMonths());
+//        rdAccount.setMaturityDate(LocalDate.now().plusMonths(request.getTenureMonths()));
+//
+//        // Calculate maturity amount (simplified)
+//        BigDecimal monthlyRate = request.getInterestRate().divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
+//        BigDecimal totalDeposits = request.getDepositAmount().multiply(BigDecimal.valueOf(request.getTenureMonths()));
+//
+//        BigDecimal interest = request.getDepositAmount()
+//                .multiply(monthlyRate)
+//                .multiply(BigDecimal.valueOf(request.getTenureMonths() * (request.getTenureMonths() + 1) / 2));
+//        rdAccount.setMaturityAmount(totalDeposits.add(interest));
+//
+//        // Associate with user
+//        user.addRdAccount(rdAccount);
+//
+//        // Save both entities
+//        usersRepository.save(user);
+//        return rdAccount;
+//    }
 
     @Override
     public RdAccountsEntity findByAccountNumber(String accountNumber) {

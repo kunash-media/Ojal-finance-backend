@@ -1,7 +1,7 @@
 package com.ojal.service;
 
 import com.ojal.model_entity.LoanAccountsEntity;
-import com.ojal.model_entity.LoanAccounts_Dto.LoanAccountsDto;
+import com.ojal.model_entity.dto.request.LoanAccountsDto;
 
 import java.util.List;
 

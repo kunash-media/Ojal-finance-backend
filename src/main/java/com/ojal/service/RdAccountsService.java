@@ -1,13 +1,14 @@
 package com.ojal.service;
 
 import com.ojal.model_entity.RdAccountsEntity;
-import com.ojal.model_entity.RdAccounts_Dto.RdAccountsDto;
+import com.ojal.model_entity.UsersEntity;
+import com.ojal.model_entity.dto.request.RdAccountsDto;
 
 import java.util.List;
 
 public interface RdAccountsService {
 
-    RdAccountsEntity createAccount(String userId, RdAccountsDto request);
+    UsersEntity createAccount(String userId, RdAccountsDto request);
 
     RdAccountsEntity findByAccountNumber(String accountNumber);
 

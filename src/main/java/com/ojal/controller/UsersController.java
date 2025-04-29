@@ -1,7 +1,7 @@
 package com.ojal.controller;
 
 import com.ojal.model_entity.UsersEntity;
-import com.ojal.model_entity.Users_Dto.UserRegistrationDto;
+import com.ojal.model_entity.dto.request.UserRegistrationDto;
 import com.ojal.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

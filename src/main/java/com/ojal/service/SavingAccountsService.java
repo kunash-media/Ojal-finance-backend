@@ -1,7 +1,7 @@
 package com.ojal.service;
 
 import com.ojal.model_entity.SavingAccountsEntity;
-import com.ojal.model_entity.SavingAccounts_Dto.SavingAccountsDto;
+import com.ojal.model_entity.dto.request.SavingAccountsDto;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.ojal.model_entity.RdAccounts_Dto;
+package com.ojal.model_entity.dto.request;
 
 import java.math.BigDecimal;
 

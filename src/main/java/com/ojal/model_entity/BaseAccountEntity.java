@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
-public abstract class BaseAccountEntity {
+public class BaseAccountEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

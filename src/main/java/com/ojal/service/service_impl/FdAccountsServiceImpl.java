@@ -1,8 +1,7 @@
 package com.ojal.service.service_impl;
 
-import com.ojal.model_entity.BaseAccountEntity;
 import com.ojal.model_entity.FdAccountsEntity;
-import com.ojal.model_entity.FdAccounts_Dto.FdAccountsDto;
+import com.ojal.model_entity.dto.request.FdAccountsDto;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.FdAccountsRepository;
 import com.ojal.repository.UsersRepository;

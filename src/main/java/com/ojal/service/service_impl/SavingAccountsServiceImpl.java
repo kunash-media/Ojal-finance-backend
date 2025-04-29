@@ -2,7 +2,7 @@ package com.ojal.service.service_impl;
 
 import com.ojal.global_exception.ResourceNotFoundException;
 import com.ojal.model_entity.SavingAccountsEntity;
-import com.ojal.model_entity.SavingAccounts_Dto.SavingAccountsDto;
+import com.ojal.model_entity.dto.request.SavingAccountsDto;
 
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.SavingAccountsRepository;
