@@ -1,15 +1,20 @@
 package com.ojal.model_entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ojal.repository.UsersRepository;
 import jakarta.persistence.*;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users_table")
 public class UsersEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,17 +31,26 @@ public class UsersEntity {
     @Column(nullable = false)
     private String password; // Should be encrypted in reality
 
+
     // One-to-many relationships with account entities
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @JsonIgnore
     private List<SavingAccountsEntity> savingAccounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @JsonIgnore
     private List<RdAccountsEntity> rdAccounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @JsonIgnore
     private List<FdAccountsEntity> fdAccounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @JsonIgnore
     private List<LoanAccountsEntity> loanAccounts = new ArrayList<>();
 
     @PrePersist
@@ -95,7 +109,8 @@ public class UsersEntity {
         return userId;
     }
 
-    public UsersEntity(){}
+    public UsersEntity() {
+    }
 
     public UsersEntity(Long id, String userId, String name, String email, String password) {
         this.id = id;

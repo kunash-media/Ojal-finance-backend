@@ -39,9 +39,11 @@ public class LoanAccountsServiceImpl implements LoanAccountsService {
     @Override
     @Transactional
     public LoanAccountsEntity createAccount(String userId, LoanAccountsDto request) {
+
         UsersEntity user = userService.findByUserId(userId);
 
         LoanAccountsEntity loanAccount = new LoanAccountsEntity();
+
         loanAccount.setLoanAmount(request.getLoanAmount());
         loanAccount.setInterestRate(request.getInterestRate());
         loanAccount.setTenureMonths(request.getTenureMonths());
@@ -50,7 +52,7 @@ public class LoanAccountsServiceImpl implements LoanAccountsService {
         loanAccount.setEndDate(LocalDate.now().plusMonths(request.getTenureMonths()));
         loanAccount.setOutstandingAmount(request.getLoanAmount());
 
-        // Calculate EMI (simplified)
+        // Calculate EMI (simplified) formula used : EMI = [P × R × (1+R)^N] / [(1+R)^N – 1]
         double r = request.getInterestRate().doubleValue() / 12 / 100;
         double n = request.getTenureMonths().doubleValue();
         double p = request.getLoanAmount().doubleValue();

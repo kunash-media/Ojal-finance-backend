@@ -13,9 +13,7 @@ public interface FdAccountsRepository extends JpaRepository<FdAccountsEntity,Lon
 
     Optional<FdAccountsEntity> findByAccountNumber(String accountNumber);
 
-    // For findAllByUserId() - Two approaches:
-
-    // Approach 1: Query by User entity (requires fetching user first)
+    // Query by User entity (requires fetching user first)
     List<FdAccountsEntity> findByUser(UsersEntity user);
 
 }

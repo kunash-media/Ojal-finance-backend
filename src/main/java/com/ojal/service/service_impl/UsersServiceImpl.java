@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class UsersServiceImpl implements UsersService {
 
@@ -56,5 +58,11 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public boolean existsByEmail(String email) {
         return usersRepository.existsByEmail(email);
+    }
+
+    @Override
+    public List<UsersEntity> getAllUsers(){
+        List<UsersEntity> users =  usersRepository.findAll();
+       return users;
     }
 }

@@ -1,5 +1,6 @@
 package com.ojal.model_entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ public class FdAccountsEntity extends BaseAccountEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private UsersEntity user;
 
     @Column(name = "principal_amount", nullable = false)
@@ -20,8 +22,8 @@ public class FdAccountsEntity extends BaseAccountEntity {
     @Column(name = "interest_rate", nullable = false)
     private BigDecimal interestRate;
 
-    @Column(name = "tenure_days", nullable = false)
-    private Integer tenureDays;
+    @Column(name = "tenure_months", nullable = false)
+    private Integer tenureMonths;
 
     @Column(name = "maturity_date", nullable = false)
     private LocalDate maturityDate;
@@ -29,8 +31,6 @@ public class FdAccountsEntity extends BaseAccountEntity {
     @Column(name = "maturity_amount")
     private BigDecimal maturityAmount;
 
-    @Column(name = "auto_renewal")
-    private Boolean autoRenewal = false;
 
     @PrePersist
     protected void onCreate() {
@@ -40,6 +40,7 @@ public class FdAccountsEntity extends BaseAccountEntity {
         }
     }
 
+    // FD Account Number Generator.
     private String generateAccountNumber() {
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder("FD");
@@ -74,12 +75,12 @@ public class FdAccountsEntity extends BaseAccountEntity {
         this.interestRate = interestRate;
     }
 
-    public Integer getTenureDays() {
-        return tenureDays;
+    public Integer getTenureMonths() {
+        return tenureMonths;
     }
 
-    public void setTenureDays(Integer tenureDays) {
-        this.tenureDays = tenureDays;
+    public void setTenureMonths(Integer tenureMonths) {
+        this.tenureMonths = tenureMonths;
     }
 
     public LocalDate getMaturityDate() {
@@ -98,11 +99,4 @@ public class FdAccountsEntity extends BaseAccountEntity {
         this.maturityAmount = maturityAmount;
     }
 
-    public Boolean getAutoRenewal() {
-        return autoRenewal;
-    }
-
-    public void setAutoRenewal(Boolean autoRenewal) {
-        this.autoRenewal = autoRenewal;
-    }
 }

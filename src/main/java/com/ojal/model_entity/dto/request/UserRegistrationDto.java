@@ -1,5 +1,7 @@
 package com.ojal.model_entity.dto.request;
 
+import java.util.Set;
+
 public class UserRegistrationDto {
     private String name;
     private String email;
@@ -12,5 +14,6 @@ public class UserRegistrationDto {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
 }
 

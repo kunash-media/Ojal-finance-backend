@@ -2,11 +2,16 @@ package com.ojal.controller;
 
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.model_entity.dto.request.UserRegistrationDto;
+import com.ojal.model_entity.dto.response.UserAccountsResponse;
 import com.ojal.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @CrossOrigin("*")
 @RestController
@@ -31,6 +36,26 @@ public class UsersController {
         UsersEntity user = userService.findByUserId(userId);
         UserResponse response = new UserResponse(user.getUserId(), user.getName(), user.getEmail());
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("details/{userId}")
+    public ResponseEntity<?> getUserAccounts(@PathVariable String userId) {
+        try {
+
+            UsersEntity user = userService.findByUserId(userId);
+
+            if (user == null) {
+                return new ResponseEntity<>("User not found with ID: " + userId, HttpStatus.NOT_FOUND);
+            }
+
+            UserAccountsResponse response = new UserAccountsResponse(user);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error retrieving user accounts: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // Response DTO

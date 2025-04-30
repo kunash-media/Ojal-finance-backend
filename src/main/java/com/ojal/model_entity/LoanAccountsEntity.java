@@ -1,5 +1,6 @@
 package com.ojal.model_entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ public class LoanAccountsEntity extends BaseAccountEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private UsersEntity user;
 
     @Column(name = "loan_amount", nullable = false)

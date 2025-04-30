@@ -3,6 +3,8 @@ package com.ojal.service;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.model_entity.dto.request.UserRegistrationDto;
 
+import java.util.List;
+
 public interface UsersService {
 
     UsersEntity createUser(UserRegistrationDto request);
@@ -15,4 +17,6 @@ public interface UsersService {
 
     boolean existsByEmail(String email);
     // Additional user management methods
+
+    List<UsersEntity> getAllUsers();
 }

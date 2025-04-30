@@ -46,8 +46,7 @@
 {
   "principalAmount": 100000.00,
   "interestRate": 6.0,
-  "tenureDays": 365,
-  "autoRenewal": true
+  "tenureMonths": 6
 }
 
 // Response
@@ -72,7 +71,7 @@
 }
 
 // 6. Get all accounts for a user
-// GET /api/users/U54321/accounts
+// GET /api/users/details/U54321
 // Response
 {
   "userId": "U54321",

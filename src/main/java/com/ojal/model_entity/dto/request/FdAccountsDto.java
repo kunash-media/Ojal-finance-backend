@@ -6,8 +6,7 @@ public class FdAccountsDto {
 
     private BigDecimal principalAmount;
     private BigDecimal interestRate;
-    private Integer tenureDays;
-    private Boolean autoRenewal;
+    private Integer tenureMonths;
 
     // Getters and setters
     public BigDecimal getPrincipalAmount() {
@@ -26,19 +25,12 @@ public class FdAccountsDto {
         this.interestRate = interestRate;
     }
 
-    public Integer getTenureDays() {
-        return tenureDays;
+    public Integer getTenureMonths() {
+        return tenureMonths;
     }
 
-    public void setTenureDays(Integer tenureDays) {
-        this.tenureDays = tenureDays;
+    public void setTenureMonths(Integer tenureMonths) {
+        this.tenureMonths = tenureMonths;
     }
 
-    public Boolean getAutoRenewal() {
-        return autoRenewal;
-    }
-
-    public void setAutoRenewal(Boolean autoRenewal) {
-        this.autoRenewal = autoRenewal;
-    }
 }

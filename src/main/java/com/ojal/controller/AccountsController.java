@@ -7,10 +7,7 @@ import com.ojal.model_entity.dto.request.LoanAccountsDto;
 import com.ojal.model_entity.dto.request.RdAccountsDto;
 import com.ojal.model_entity.dto.request.SavingAccountsDto;
 import com.ojal.model_entity.dto.response.RdUserResponse;
-import com.ojal.service.FdAccountsService;
-import com.ojal.service.LoanAccountsService;
-import com.ojal.service.RdAccountsService;
-import com.ojal.service.SavingAccountsService;
+import com.ojal.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountsController {
+
 
     private final SavingAccountsService savingAccountService;
     private final RdAccountsService rdAccountService;
@@ -75,14 +73,6 @@ public class AccountsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-//    @PostMapping("/{userId}/rd")
-//    public ResponseEntity<AccountResponse> createRdAccount(@PathVariable String userId, @RequestBody RdAccountsDto request) {
-//
-//        RdAccountsEntity account = rdAccountService.createAccount(userId, request);
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(new AccountResponse(account.getAccountNumber(), AccountType.RD_AC));
-//    }
-
     @PostMapping("/{userId}/fd")
     public ResponseEntity<AccountResponse> createFdAccount(@PathVariable String userId, @RequestBody FdAccountsDto request) {
 
@@ -99,7 +89,9 @@ public class AccountsController {
                 .body(new AccountResponse(account.getAccountNumber(), AccountType.LOAN_AC));
     }
 
-    // Response class
+
+
+    // --------------  Response class  ---------------------//
     public static class AccountResponse {
 
         private String accountNumber;

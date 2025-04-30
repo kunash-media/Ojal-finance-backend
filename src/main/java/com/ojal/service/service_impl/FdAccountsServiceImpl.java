@@ -38,20 +38,35 @@ public class FdAccountsServiceImpl implements FdAccountsService {
     @Override
     @Transactional
     public FdAccountsEntity createAccount(String userId, FdAccountsDto request) {
+
         UsersEntity user = userService.findByUserId(userId);
 
         FdAccountsEntity fdAccount = new FdAccountsEntity();
+
         fdAccount.setPrincipalAmount(request.getPrincipalAmount());
         fdAccount.setInterestRate(request.getInterestRate());
-        fdAccount.setTenureDays(request.getTenureDays());
-        fdAccount.setMaturityDate(LocalDate.now().plusDays(request.getTenureDays()));
-        fdAccount.setAutoRenewal(request.getAutoRenewal());
+        fdAccount.setTenureMonths(request.getTenureMonths());
+        fdAccount.setMaturityDate(LocalDate.now().plusMonths(request.getTenureMonths()));
 
-        // Calculate maturity amount (simplified)
-        BigDecimal annualRate = request.getInterestRate().divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
-        BigDecimal timeYears = BigDecimal.valueOf(request.getTenureDays()).divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
-        BigDecimal interest = request.getPrincipalAmount().multiply(annualRate).multiply(timeYears);
-        fdAccount.setMaturityAmount(request.getPrincipalAmount().add(interest));
+        // Calculate maturity amount using simple interest formula
+        // Simple Interest = P × R × T
+        // where:
+        // P = Principal
+        // R = Annual interest rate (in decimal)
+        // T = Time (in years)
+        // Maturity Amount = Principal + Simple Interest
+
+        BigDecimal principal = request.getPrincipalAmount();
+        BigDecimal rateDecimal = request.getInterestRate().divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+        BigDecimal timeInYears = BigDecimal.valueOf(request.getTenureMonths()).divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+
+        // Calculate simple interest
+        BigDecimal interest = principal.multiply(rateDecimal).multiply(timeInYears);
+
+        // Calculate maturity amount
+        BigDecimal maturityAmount = principal.add(interest);
+
+        fdAccount.setMaturityAmount(maturityAmount);
 
         // Associate with user
         user.addFdAccount(fdAccount);
@@ -73,42 +88,4 @@ public class FdAccountsServiceImpl implements FdAccountsService {
         return fdAccountsRepository.findByUser(user);
     }
 
-//    @Override
-//    @Transactional
-//    public FdAccountsEntity processMaturity(String accountNumber) {
-//        FdAccountsEntity account = findByAccountNumber(accountNumber);
-//
-//        if (LocalDate.now().isAfter(account.getMaturityDate())) {
-//            if (account.getAutoRenewal()) {
-//                // Create a new FD with the matured amount as principal
-//                FdAccountsEntity newFd = new FdAccountsEntity();
-//                newFd.setPrincipalAmount(account.getMaturityAmount());
-//                newFd.setInterestRate(account.getInterestRate());
-//                newFd.setTenureDays(account.getTenureDays());
-//                newFd.setMaturityDate(LocalDate.now().plusDays(account.getTenureDays()));
-//                newFd.setAutoRenewal(account.getAutoRenewal());
-//
-//                // Calculate new maturity amount
-//                BigDecimal annualRate = account.getInterestRate().divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
-//                BigDecimal timeYears = BigDecimal.valueOf(account.getTenureDays()).divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
-//                BigDecimal interest = account.getMaturityAmount().multiply(annualRate).multiply(timeYears);
-//                newFd.setMaturityAmount(account.getMaturityAmount().add(interest));
-//                newFd.setUser(account.getUser());
-//
-//                // Mark old FD as inactive
-//                account.setStatus(BaseAccountEntity.AccountStatus.INACTIVE);
-//                fdAccountsRepository.save(account);
-//
-//                // Return the new FD
-//                return fdAccountsRepository.save(newFd);
-//            } else {
-//                // Mark as matured but don't renew
-//                account.setStatus(BaseAccountEntity.AccountStatus.INACTIVE);
-//                return fdAccountsRepository.save(account);
-//            }
-//        }
-//
-//        // Account hasn't matured yet
-//        return account;
-//    }
 }
