@@ -19,4 +19,6 @@ public interface UsersService {
     // Additional user management methods
 
     List<UsersEntity> getAllUsers();
+
+    void updateUser(String userId, UserRegistrationDto userRegistrationDto);
 }

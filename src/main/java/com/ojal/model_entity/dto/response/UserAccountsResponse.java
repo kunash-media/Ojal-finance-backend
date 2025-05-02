@@ -8,6 +8,7 @@ public class UserAccountsResponse {
 
     private String userId;
     private String userName;
+    private String userRole;
     private List<SavingAccountsEntity> savingAccounts;
     private List<RdAccountsEntity> rdAccounts;
     private List<FdAccountsEntity> fdAccounts;
@@ -17,6 +18,7 @@ public class UserAccountsResponse {
     public UserAccountsResponse(UsersEntity user) {
         this.userId = user.getUserId();
         this.userName = user.getName();
+        this.userRole = user.getRole();
         this.savingAccounts = user.getSavingAccounts();
         this.rdAccounts = user.getRdAccounts();
         this.fdAccounts = user.getFdAccounts();
@@ -34,6 +36,14 @@ public class UserAccountsResponse {
 
     public String getUserName() {
         return userName;
+    }
+
+    public String getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(String userRole) {
+        this.userRole = userRole;
     }
 
     public void setUserName(String userName) {

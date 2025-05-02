@@ -9,9 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @CrossOrigin("*")
 @RestController
@@ -25,17 +22,10 @@ public class UsersController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@RequestBody UserRegistrationDto request) {
+    public ResponseEntity<UserRegistrationDto> registerUser(@RequestBody UserRegistrationDto request) {
         UsersEntity user = userService.createUser(request);
-        UserResponse response = new UserResponse(user.getUserId(), user.getName(), user.getEmail());
+        UserRegistrationDto response = new UserRegistrationDto(user.getUserId(), user.getName(), user.getEmail(),user.getRole());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable String userId) {
-        UsersEntity user = userService.findByUserId(userId);
-        UserResponse response = new UserResponse(user.getUserId(), user.getName(), user.getEmail());
-        return ResponseEntity.ok(response);
     }
 
 
@@ -48,7 +38,6 @@ public class UsersController {
             if (user == null) {
                 return new ResponseEntity<>("User not found with ID: " + userId, HttpStatus.NOT_FOUND);
             }
-
             UserAccountsResponse response = new UserAccountsResponse(user);
             return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -58,40 +47,19 @@ public class UsersController {
         }
     }
 
-    // Response DTO
-    public static class UserResponse {
-        private String userId;
-        private String name;
-        private String email;
-
-        public UserResponse(String userId, String name, String email) {
-            this.userId = userId;
-            this.name = name;
-            this.email = email;
+    @PatchMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody UserRegistrationDto userRegistrationDto) {
+        try {
+            userService.updateUser(userId, userRegistrationDto);
+            return ResponseEntity.ok().body("User updated successfully");
         }
-
-        public String getUserId() {
-            return userId;
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating user: " + e.getMessage());
         }
     }
+
+
 }

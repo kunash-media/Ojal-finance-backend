@@ -7,9 +7,7 @@ import jakarta.persistence.*;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "users_table")
@@ -31,6 +29,8 @@ public class UsersEntity {
     @Column(nullable = false)
     private String password; // Should be encrypted in reality
 
+    @Column(name="user_roles", nullable = false)
+    private String role;
 
     // One-to-many relationships with account entities
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -112,12 +112,13 @@ public class UsersEntity {
     public UsersEntity() {
     }
 
-    public UsersEntity(Long id, String userId, String name, String email, String password) {
+    public UsersEntity(Long id, String userId, String name, String email, String password, String role) {
         this.id = id;
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     public Long getId() {
@@ -150,6 +151,14 @@ public class UsersEntity {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public void setPassword(String password) {

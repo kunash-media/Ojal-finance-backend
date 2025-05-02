@@ -73,6 +73,7 @@ public class AccountsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+
     @PostMapping("/{userId}/fd")
     public ResponseEntity<AccountResponse> createFdAccount(@PathVariable String userId, @RequestBody FdAccountsDto request) {
 
