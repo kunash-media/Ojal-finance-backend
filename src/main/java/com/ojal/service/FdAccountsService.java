@@ -11,7 +11,7 @@ public interface FdAccountsService {
 
     FdAccountsEntity findByAccountNumber(String accountNumber);
 
-    List<FdAccountsEntity> findAllByUserId(String userId);
+//    List<FdAccountsEntity> findAllByUserId(String userId);
 
 //    FdAccountsEntity processMaturity(String accountNumber);
 }

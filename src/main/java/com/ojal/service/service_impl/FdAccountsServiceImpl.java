@@ -6,7 +6,6 @@ import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.FdAccountsRepository;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.FdAccountsService;
-import com.ojal.service.UsersService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,31 +14,28 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.List;
+
 
 @Service
 public class FdAccountsServiceImpl implements FdAccountsService {
 
     private final UsersRepository usersRepository;
     private final FdAccountsRepository fdAccountsRepository;
-    private final UsersService userService;
 
     @Autowired
     public FdAccountsServiceImpl(
             UsersRepository usersRepository,
-            FdAccountsRepository fdAccountsRepository,
-            UsersService userService
+            FdAccountsRepository fdAccountsRepository
     ) {
         this.usersRepository = usersRepository;
         this.fdAccountsRepository = fdAccountsRepository;
-        this.userService = userService;
     }
 
     @Override
     @Transactional
     public FdAccountsEntity createAccount(String userId, FdAccountsDto request) {
 
-        UsersEntity user = userService.findByUserId(userId);
+        UsersEntity user = usersRepository.findByUserId(userId);
 
         FdAccountsEntity fdAccount = new FdAccountsEntity();
 
@@ -80,12 +76,6 @@ public class FdAccountsServiceImpl implements FdAccountsService {
     public FdAccountsEntity findByAccountNumber(String accountNumber) {
         return fdAccountsRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new EntityNotFoundException("FD account not found with number: " + accountNumber));
-    }
-
-    @Override
-    public List<FdAccountsEntity> findAllByUserId(String userId) {
-        UsersEntity user = userService.findByUserId(userId);
-        return fdAccountsRepository.findByUser(user);
     }
 
 }

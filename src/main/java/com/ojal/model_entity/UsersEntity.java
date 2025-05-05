@@ -32,6 +32,18 @@ public class UsersEntity {
     @Column(name="user_roles", nullable = false)
     private String role;
 
+    @Column(name="pan_card",columnDefinition = "LONGBLOB")
+    private byte[] panCard;
+
+    @Column(name="aadhar_card",columnDefinition = "LONGBLOB")
+    private byte[] aadharCard;
+
+    @Column(name="pass_port_img",columnDefinition = "LONGBLOB")
+    private byte[] passPortImg;
+
+    @Column(name="voter_id_img",columnDefinition = "LONGBLOB")
+    private byte[] voterIdImg;
+
     // One-to-many relationships with account entities
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -112,13 +124,20 @@ public class UsersEntity {
     public UsersEntity() {
     }
 
-    public UsersEntity(Long id, String userId, String name, String email, String password, String role) {
+    public UsersEntity(Long id, String userId, String name, String email,
+                       String password, String role,
+                       byte[] panCard, byte[] aadharCard, byte[] passPortImg, byte[] voterIdImg) {
+
         this.id = id;
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.panCard = panCard;
+        this.aadharCard = aadharCard;
+        this.passPortImg = passPortImg;
+        this.voterIdImg = voterIdImg;
     }
 
     public Long getId() {
@@ -179,5 +198,37 @@ public class UsersEntity {
 
     public List<LoanAccountsEntity> getLoanAccounts() {
         return loanAccounts;
+    }
+
+    public byte[] getPanCard() {
+        return panCard;
+    }
+
+    public void setPanCard(byte[] panCard) {
+        this.panCard = panCard;
+    }
+
+    public byte[] getAadharCard() {
+        return aadharCard;
+    }
+
+    public void setAadharCard(byte[] aadharCard) {
+        this.aadharCard = aadharCard;
+    }
+
+    public byte[] getPassPortImg() {
+        return passPortImg;
+    }
+
+    public void setPassPortImg(byte[] passPortImg) {
+        this.passPortImg = passPortImg;
+    }
+
+    public byte[] getVoterIdImg() {
+        return voterIdImg;
+    }
+
+    public void setVoterIdImg(byte[] voterIdImg) {
+        this.voterIdImg = voterIdImg;
     }
 }

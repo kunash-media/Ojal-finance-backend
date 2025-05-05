@@ -40,7 +40,7 @@ public class LoanAccountsServiceImpl implements LoanAccountsService {
     @Transactional
     public LoanAccountsEntity createAccount(String userId, LoanAccountsDto request) {
 
-        UsersEntity user = userService.findByUserId(userId);
+        UsersEntity user = usersRepository.findByUserId(userId);
 
         LoanAccountsEntity loanAccount = new LoanAccountsEntity();
 
@@ -75,7 +75,7 @@ public class LoanAccountsServiceImpl implements LoanAccountsService {
 
     @Override
     public List<LoanAccountsEntity> findAllByUserId(String userId) {
-        UsersEntity user = userService.findByUserId(userId);
+        UsersEntity user = usersRepository.findByUserId(userId);
         return loanAccountsRepository.findByUser(user);
     }
 

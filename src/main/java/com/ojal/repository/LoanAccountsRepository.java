@@ -11,6 +11,10 @@ import java.util.Optional;
 @Repository
 public interface LoanAccountsRepository extends JpaRepository<LoanAccountsEntity,Long> {
 
+
+//    UsersEntity findByEmail(String email);
+//    boolean existsByEmail(String email);
+
     Optional<LoanAccountsEntity> findByAccountNumber(String accountNumber);
 
     List<LoanAccountsEntity> findByUser(UsersEntity user);

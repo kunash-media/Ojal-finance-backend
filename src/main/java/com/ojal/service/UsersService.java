@@ -2,23 +2,29 @@ package com.ojal.service;
 
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.model_entity.dto.request.UserRegistrationDto;
+import com.ojal.model_entity.dto.response.GetAllUserDto;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface UsersService {
 
-    UsersEntity createUser(UserRegistrationDto request);
 
-    UsersEntity findByUserId(String userId);
+    UsersEntity createUserWithDocuments(
+            UserRegistrationDto userData,
+            MultipartFile panCard,
+            MultipartFile aadharCard,
+            MultipartFile passportImg,
+            MultipartFile voterIdImg) throws IOException;
 
-    boolean existsByUserId(String userId);
+    Map<String, Boolean> getDocumentsStatus(String userId);
 
-    UsersEntity findByEmail(String email);
 
-    boolean existsByEmail(String email);
-    // Additional user management methods
-
-    List<UsersEntity> getAllUsers();
+//    UsersEntity createUser(UserRegistrationDto request);
 
     void updateUser(String userId, UserRegistrationDto userRegistrationDto);
+
+    List<GetAllUserDto> getAllUsers();
 }

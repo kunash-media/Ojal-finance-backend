@@ -16,4 +16,6 @@ public interface FdAccountsRepository extends JpaRepository<FdAccountsEntity,Lon
     // Query by User entity (requires fetching user first)
     List<FdAccountsEntity> findByUser(UsersEntity user);
 
+
+
 }

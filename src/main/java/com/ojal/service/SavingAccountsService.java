@@ -12,8 +12,4 @@ public interface SavingAccountsService {
 
     SavingAccountsEntity findByAccountNumber(String accountNumber);
 
-    List<SavingAccountsEntity> findAllByUserId(String userId);
-
-    SavingAccountsEntity updateBalance(String accountNumber, BigDecimal amount);
-    // Additional saving account management methods
 }

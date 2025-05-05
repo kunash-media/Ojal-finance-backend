@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/accounts")
 public class AccountsController {
 
-
     private final SavingAccountsService savingAccountService;
     private final RdAccountsService rdAccountService;
     private final FdAccountsService fdAccountService;

@@ -12,12 +12,12 @@ import com.ojal.service.SavingAccountsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-import java.util.List;
-
 
 
 @Service
@@ -40,10 +40,12 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
     @Override
     @Transactional
     public SavingAccountsEntity createAccount(String userId, SavingAccountsDto dto) {
-        // Find user
-        UsersEntity user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+        UsersEntity user = userRepository.findByUserId(userId);
+
+        if(user == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found with ID: "+userId);
+        }
         // Validate initial deposit
         BigDecimal minimumRequired = defaultMinimumBalance;
         if (dto.getInitialDeposit() == null || dto.getInitialDeposit().compareTo(minimumRequired) < 0) {
@@ -55,7 +57,7 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
         SavingAccountsEntity account = new SavingAccountsEntity();
 
         account.setUser(user);
-//        account.setAccountName(dto.getAccountName());
+
         account.setBalance(dto.getInitialDeposit());
         account.setInterestRate(dto.getInterestRate());
         account.setMinimumBalance(minimumRequired);
@@ -71,33 +73,4 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
                 .orElseThrow(() -> new ResourceNotFoundException("Saving Account", "accountNumber", accountNumber));
     }
 
-    @Override
-    public List<SavingAccountsEntity> findAllByUserId(String userId) {
-        // Validate user exists
-        if (!userRepository.existsByUserId(userId)) {
-            throw new ResourceNotFoundException("User", "id", userId);
-        }
-        return savingAccountsRepository.findByUser_userId(userId);
-    }
-
-    @Override
-    @Transactional
-    public SavingAccountsEntity updateBalance(String accountNumber, BigDecimal amount) {
-        SavingAccountsEntity account = findByAccountNumber(accountNumber);
-
-        BigDecimal newBalance = account.getBalance().add(amount);
-
-        // Validate withdrawal doesn't go below minimum balance
-        if (amount.compareTo(BigDecimal.ZERO) < 0 &&
-                newBalance.compareTo(account.getMinimumBalance()) < 0) {
-            throw new IllegalArgumentException(
-                    "Withdrawal would reduce balance below minimum required balance of " +
-                            account.getMinimumBalance());
-        }
-
-        account.setBalance(newBalance);
-        // The lastUpdated field will be updated by BaseAccountEntity's @PreUpdate method
-
-        return savingAccountsRepository.save(account);
-    }
 }
