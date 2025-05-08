@@ -1,6 +1,7 @@
 package com.ojal.service;
 
 import com.ojal.model_entity.SavingAccountsEntity;
+import com.ojal.model_entity.dto.request.SavingAccountDetailsDto;
 import com.ojal.model_entity.dto.request.SavingAccountsDto;
 
 import java.math.BigDecimal;
@@ -12,4 +13,6 @@ public interface SavingAccountsService {
 
     SavingAccountsEntity findByAccountNumber(String accountNumber);
 
+    // New method to get account details with transactions
+    SavingAccountDetailsDto getAccountWithTransactions(String accountNumber);
 }

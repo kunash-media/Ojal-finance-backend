@@ -1,7 +1,6 @@
 package com.ojal.repository;
 
 import com.ojal.model_entity.SavingAccountsEntity;
-import com.ojal.model_entity.UsersEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

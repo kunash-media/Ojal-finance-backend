@@ -1,15 +1,18 @@
 package com.ojal.service.service_impl;
 
+
+import com.ojal.enum_accounts.AccountType;
 import com.ojal.global_exception.ResourceNotFoundException;
 import com.ojal.model_entity.SavingAccountsEntity;
-import com.ojal.model_entity.dto.request.SavingAccountsDto;
-
+import com.ojal.model_entity.TransactionEntity;
 import com.ojal.model_entity.UsersEntity;
+import com.ojal.model_entity.dto.request.SavingAccountDetailsDto;
+import com.ojal.model_entity.dto.request.SavingAccountsDto;
+import com.ojal.model_entity.dto.request.TransactionDto;
 import com.ojal.repository.SavingAccountsRepository;
-
+import com.ojal.repository.TransactionRepository;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.SavingAccountsService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -18,13 +21,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SavingAccountsServiceImpl implements SavingAccountsService {
 
     private final SavingAccountsRepository savingAccountsRepository;
     private final UsersRepository userRepository;
+    private final TransactionRepository transactionRepository;
 
     @Value("${account.savings.default-minimum-balance:1000}")
     private BigDecimal defaultMinimumBalance;
@@ -32,9 +37,11 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
     @Autowired
     public SavingAccountsServiceImpl(
             SavingAccountsRepository savingAccountsRepository,
-            UsersRepository userRepository) {
+            UsersRepository userRepository,
+            TransactionRepository transactionRepository) {
         this.savingAccountsRepository = savingAccountsRepository;
         this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     @Override
@@ -73,4 +80,46 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
                 .orElseThrow(() -> new ResourceNotFoundException("Saving Account", "accountNumber", accountNumber));
     }
 
+    @Override
+    public SavingAccountDetailsDto getAccountWithTransactions(String accountNumber) {
+        // Get the account
+        SavingAccountsEntity account = findByAccountNumber(accountNumber);
+
+        // Get associated transactions
+        List<TransactionEntity> transactions = transactionRepository
+                .findBySavingAccount_AccountNumberOrderByDateDesc(accountNumber);
+
+        // Create DTO
+        SavingAccountDetailsDto dto = new SavingAccountDetailsDto();
+        dto.setId(account.getId());
+        dto.setName(account.getUser().getName());
+        dto.setAccountNumber(account.getAccountNumber());
+        dto.setCreatedAt(account.getCreatedDate());
+        dto.setAccountType(AccountType.SAVING_AC.name());
+        dto.setCurrentBalance(account.getBalance());
+        dto.setInterestRate(account.getInterestRate());
+        dto.setStatus(account.getStatus().name());
+
+        // Map transactions to DTOs
+        List<TransactionDto> transactionDtos = transactions.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+        dto.setTransactionData(transactionDtos);
+
+        return dto;
+    }
+
+    private TransactionDto mapToDto(TransactionEntity entity) {
+        TransactionDto dto = new TransactionDto();
+        dto.setId(entity.getId());
+        dto.setDate(entity.getDate());
+        dto.setAmount(entity.getAmount());
+        dto.setPayMode(entity.getPayMode());
+        dto.setUtrNo(entity.getUtrNo());
+        dto.setCash(entity.getCash());
+        dto.setChequeNumber(entity.getChequeNumber());
+        dto.setNote(entity.getNote());
+        dto.setBalanceAfter(entity.getBalanceAfter());
+        return dto;
+    }
 }
