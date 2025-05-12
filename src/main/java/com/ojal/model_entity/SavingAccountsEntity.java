@@ -11,9 +11,10 @@ import java.security.SecureRandom;
 public class SavingAccountsEntity extends BaseAccountEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     @JsonBackReference
     private UsersEntity user;
+
 
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;

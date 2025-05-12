@@ -1,7 +1,7 @@
 package com.ojal.model_entity.dto.request;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 public class SavingAccountDetailsDto {
@@ -9,12 +9,12 @@ public class SavingAccountDetailsDto {
     private Long id;
     private String name;
     private String accountNumber;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private String accountType;
     private BigDecimal currentBalance;
     private BigDecimal interestRate;
     private String status;
-    private List<TransactionDto> transactionData;
+    private List<SavingTransactionDto> transactionData;
 
     public SavingAccountDetailsDto() {
     }
@@ -43,11 +43,11 @@ public class SavingAccountDetailsDto {
         this.accountNumber = accountNumber;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -83,11 +83,11 @@ public class SavingAccountDetailsDto {
         this.status = status;
     }
 
-    public List<TransactionDto> getTransactionData() {
+    public List<SavingTransactionDto> getTransactionData() {
         return transactionData;
     }
 
-    public void setTransactionData(List<TransactionDto> transactionData) {
+    public void setTransactionData(List<SavingTransactionDto> transactionData) {
         this.transactionData = transactionData;
     }
 }

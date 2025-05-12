@@ -4,13 +4,13 @@ package com.ojal.service.service_impl;
 import com.ojal.enum_accounts.AccountType;
 import com.ojal.global_exception.ResourceNotFoundException;
 import com.ojal.model_entity.SavingAccountsEntity;
-import com.ojal.model_entity.TransactionEntity;
+import com.ojal.model_entity.SavingTransactionEntity;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.model_entity.dto.request.SavingAccountDetailsDto;
 import com.ojal.model_entity.dto.request.SavingAccountsDto;
-import com.ojal.model_entity.dto.request.TransactionDto;
+import com.ojal.model_entity.dto.request.SavingTransactionDto;
 import com.ojal.repository.SavingAccountsRepository;
-import com.ojal.repository.TransactionRepository;
+import com.ojal.repository.SavingTransactionRepository;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.SavingAccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +32,7 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
 
     private final SavingAccountsRepository savingAccountsRepository;
     private final UsersRepository userRepository;
-    private final TransactionRepository transactionRepository;
+    private final SavingTransactionRepository transactionRepository;
 
     @Value("${account.savings.default-minimum-balance:1000}")
     private BigDecimal defaultMinimumBalance;
@@ -38,7 +41,7 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
     public SavingAccountsServiceImpl(
             SavingAccountsRepository savingAccountsRepository,
             UsersRepository userRepository,
-            TransactionRepository transactionRepository) {
+            SavingTransactionRepository transactionRepository) {
         this.savingAccountsRepository = savingAccountsRepository;
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
@@ -49,6 +52,11 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
     public SavingAccountsEntity createAccount(String userId, SavingAccountsDto dto) {
 
         UsersEntity user = userRepository.findByUserId(userId);
+        boolean alreadyAccount = savingAccountsRepository.existsByUser_UserId(userId);
+
+        if(alreadyAccount){
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Account with this number already exists: "+userId);
+        }
 
         if(user == null){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found with ID: "+userId);
@@ -86,22 +94,30 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
         SavingAccountsEntity account = findByAccountNumber(accountNumber);
 
         // Get associated transactions
-        List<TransactionEntity> transactions = transactionRepository
-                .findBySavingAccount_AccountNumberOrderByDateDesc(accountNumber);
+        List<SavingTransactionEntity> transactions = transactionRepository
+                .findBySavingAccount_AccountNumberOrderByCreatedAtDesc(accountNumber);
 
         // Create DTO
         SavingAccountDetailsDto dto = new SavingAccountDetailsDto();
         dto.setId(account.getId());
         dto.setName(account.getUser().getName());
         dto.setAccountNumber(account.getAccountNumber());
-        dto.setCreatedAt(account.getCreatedDate());
+
+        // Set creation time with format of 12hr-am/pm
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+
+        String formattedTime = now.format(formatter);
+
+        dto.setCreatedAt(formattedTime);
         dto.setAccountType(AccountType.SAVING_AC.name());
         dto.setCurrentBalance(account.getBalance());
         dto.setInterestRate(account.getInterestRate());
         dto.setStatus(account.getStatus().name());
 
         // Map transactions to DTOs
-        List<TransactionDto> transactionDtos = transactions.stream()
+        List<SavingTransactionDto> transactionDtos = transactions.stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
         dto.setTransactionData(transactionDtos);
@@ -109,10 +125,10 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
         return dto;
     }
 
-    private TransactionDto mapToDto(TransactionEntity entity) {
-        TransactionDto dto = new TransactionDto();
+    private SavingTransactionDto mapToDto(SavingTransactionEntity entity) {
+        SavingTransactionDto dto = new SavingTransactionDto();
         dto.setId(entity.getId());
-        dto.setDate(entity.getDate());
+        dto.setCreatedAt(entity.getCreatedAt());
         dto.setAmount(entity.getAmount());
         dto.setPayMode(entity.getPayMode());
         dto.setUtrNo(entity.getUtrNo());

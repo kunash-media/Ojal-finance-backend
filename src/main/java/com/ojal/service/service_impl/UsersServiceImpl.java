@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +63,15 @@ public class UsersServiceImpl implements UsersService {
         user.setName(userData.getName());
         user.setEmail(userData.getEmail());
         user.setPassword(passwordEncoder.encode(userData.getPassword())); // Ensure you encode the password
+
+        // Set creation time with format of 12hr-am/pm
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+
+        String formattedTime = now.format(formatter);
+        user.setCreatedAt(formattedTime);
+
         user.setRole(userData.getRole() != null ? userData.getRole() : "ROLE_USER"); // Default role if not specified
 
         // Set user repository for ID generation

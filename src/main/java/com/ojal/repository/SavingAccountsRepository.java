@@ -22,5 +22,5 @@ public interface SavingAccountsRepository extends JpaRepository<SavingAccountsEn
 
     // Additional useful queries
 //    long countByUser_UserId(String userId);  // Count accounts by custom userId
-//    boolean existsByUser_UserId(String userId);  // Check if user has any accounts
+    boolean existsByUser_UserId(String userId);  // Check if user has any accounts
 }

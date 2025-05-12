@@ -31,6 +31,9 @@ public class RdAccountsEntity extends BaseAccountEntity {
     @Column(name = "maturity_amount")
     private BigDecimal maturityAmount;
 
+    @Column(nullable = false)
+    private BigDecimal balance = BigDecimal.ZERO;
+
     @PrePersist
     protected void onCreate() {
         super.onCreate();
@@ -95,5 +98,13 @@ public class RdAccountsEntity extends BaseAccountEntity {
 
     public void setMaturityAmount(BigDecimal maturityAmount) {
         this.maturityAmount = maturityAmount;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
     }
 }

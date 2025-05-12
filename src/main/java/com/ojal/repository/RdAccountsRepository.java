@@ -15,4 +15,6 @@ public interface RdAccountsRepository extends JpaRepository<RdAccountsEntity, Lo
     Optional<RdAccountsEntity> findByAccountNumber(String accountNumber);
 
     List<RdAccountsEntity> findByUser(UsersEntity user);
+
+    boolean existsByAccountNumber(String accountNumber);
 }

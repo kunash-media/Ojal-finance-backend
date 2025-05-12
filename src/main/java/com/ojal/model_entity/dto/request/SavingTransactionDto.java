@@ -1,12 +1,12 @@
 package com.ojal.model_entity.dto.request;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
-public class TransactionDto {
+
+public class SavingTransactionDto {
 
     private Long id;
-    private LocalDateTime date;
+    private String createdAt;
     private BigDecimal amount;
     private String payMode;
     private String utrNo;
@@ -15,7 +15,7 @@ public class TransactionDto {
     private String note;
     private BigDecimal balanceAfter;
 
-    public TransactionDto() {
+    public SavingTransactionDto() {
     }
 
     public Long getId() {
@@ -26,12 +26,12 @@ public class TransactionDto {
         this.id = id;
     }
 
-    public LocalDateTime getDate() {
-        return date;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public void setCreatedAt(String date) {
+        this.createdAt = createdAt;
     }
 
     public BigDecimal getAmount() {

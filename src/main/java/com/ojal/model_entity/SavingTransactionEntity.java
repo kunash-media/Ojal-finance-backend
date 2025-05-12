@@ -3,11 +3,10 @@ package com.ojal.model_entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions_table")
-public class TransactionEntity {
+@Table(name = "saving_transactions")
+public class SavingTransactionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +18,7 @@ public class TransactionEntity {
     private SavingAccountsEntity savingAccount;
 
     @Column(nullable = false)
-    private LocalDateTime date;
+    private String createdAt;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -40,16 +39,16 @@ public class TransactionEntity {
     @Column(name = "balance_after")
     private BigDecimal balanceAfter;
 
-    public TransactionEntity() {
+    public SavingTransactionEntity() {
     }
 
-    public TransactionEntity(Long id, SavingAccountsEntity savingAccount, LocalDateTime date,
+    public SavingTransactionEntity(Long id, SavingAccountsEntity savingAccount, String createdAt,
                              BigDecimal amount, String payMode, String utrNo,
                              String cash, String chequeNumber, String note,
                              BigDecimal balanceAfter) {
         this.id = id;
         this.savingAccount = savingAccount;
-        this.date = date;
+        this.createdAt = createdAt;
         this.amount = amount;
         this.payMode = payMode;
         this.utrNo = utrNo;
@@ -75,12 +74,12 @@ public class TransactionEntity {
         this.savingAccount = savingAccount;
     }
 
-    public LocalDateTime getDate() {
-        return date;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public BigDecimal getAmount() {

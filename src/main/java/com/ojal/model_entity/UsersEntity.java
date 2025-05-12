@@ -27,7 +27,10 @@ public class UsersEntity {
     private String email;
 
     @Column(nullable = false)
-    private String password; // Should be encrypted in reality
+    private String password;
+
+    @Column(name="created_at")
+    private String createdAt;
 
     @Column(name="user_roles", nullable = false)
     private String role;
@@ -125,7 +128,7 @@ public class UsersEntity {
     }
 
     public UsersEntity(Long id, String userId, String name, String email,
-                       String password, String role,
+                       String password, String createdAt, String role,
                        byte[] panCard, byte[] aadharCard, byte[] passPortImg, byte[] voterIdImg) {
 
         this.id = id;
@@ -133,6 +136,7 @@ public class UsersEntity {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.createdAt = createdAt;
         this.role = role;
         this.panCard = panCard;
         this.aadharCard = aadharCard;
@@ -198,6 +202,14 @@ public class UsersEntity {
 
     public List<LoanAccountsEntity> getLoanAccounts() {
         return loanAccounts;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public byte[] getPanCard() {

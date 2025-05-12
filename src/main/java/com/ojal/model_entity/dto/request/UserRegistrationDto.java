@@ -14,6 +14,8 @@ public class UserRegistrationDto {
     @NotBlank(message = "Password is required")
     private String password;
 
+    private String createdAt;
+
     private String role;
 
     // Default constructor
@@ -21,10 +23,11 @@ public class UserRegistrationDto {
     }
 
     // Constructor
-    public UserRegistrationDto(String name, String email, String password, String role) {
+    public UserRegistrationDto(String name, String email, String password, String createdAt, String role) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.createdAt = createdAt;
         this.role = role;
     }
 
@@ -47,6 +50,14 @@ public class UserRegistrationDto {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public void setPassword(String password) {

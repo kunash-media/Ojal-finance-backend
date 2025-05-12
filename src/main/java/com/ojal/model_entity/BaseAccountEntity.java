@@ -3,6 +3,8 @@ package com.ojal.model_entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 @MappedSuperclass
 public class BaseAccountEntity {
@@ -15,24 +17,32 @@ public class BaseAccountEntity {
     private String accountNumber;
 
     @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+    private String createdAt;
 
     @Column(name = "last_updated")
-    private LocalDateTime lastUpdated;
+    private String lastUpdated;
 
     @Column(name = "account_status")
     @Enumerated(EnumType.STRING)
     private AccountStatus status = AccountStatus.ACTIVE;
 
+
     @PrePersist
     protected void onCreate() {
-        this.createdDate = LocalDateTime.now();
-        this.lastUpdated = LocalDateTime.now();
+        String formattedTime = getCurrentFormattedTime();
+        this.createdAt = formattedTime;
+        this.lastUpdated = formattedTime;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.lastUpdated = LocalDateTime.now();
+        this.lastUpdated = getCurrentFormattedTime();
+    }
+
+    private String getCurrentFormattedTime() {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+        return now.format(formatter);
     }
 
     // Common getters and setters
@@ -52,11 +62,11 @@ public class BaseAccountEntity {
         this.accountNumber = accountNumber;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public LocalDateTime getLastUpdated() {
+    public String getLastUpdated() {
         return lastUpdated;
     }
 
