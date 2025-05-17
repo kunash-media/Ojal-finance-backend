@@ -7,7 +7,6 @@ import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.RdAccountsRepository;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.RdAccountsService;
-import com.ojal.service.UsersService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

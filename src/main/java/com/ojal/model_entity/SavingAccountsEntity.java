@@ -22,6 +22,7 @@ public class SavingAccountsEntity extends BaseAccountEntity {
     @Column(name = "interest_rate", nullable = false)
     private BigDecimal interestRate;
 
+
     @Column(name = "minimum_balance")
     private BigDecimal minimumBalance = BigDecimal.ZERO;
 

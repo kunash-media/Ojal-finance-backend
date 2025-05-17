@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class FdAccountsEntity extends BaseAccountEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     @JsonBackReference
     private UsersEntity user;
 

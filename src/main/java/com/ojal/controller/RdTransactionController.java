@@ -55,7 +55,7 @@ public class RdTransactionController {
             // Map to response DTO
             RdAccountResponseDTO responseDTO = new RdAccountResponseDTO();
             responseDTO.setId(rdAccount.getId());
-            responseDTO.setName(rdAccount.getUser().getName());
+            responseDTO.setName(rdAccount.getUser().getFirstName());
             responseDTO.setAccountNumber(rdAccount.getAccountNumber());
             responseDTO.setCreatedAt(rdAccount.getCreatedAt());
             responseDTO.setDepositAmount(rdAccount.getDepositAmount());

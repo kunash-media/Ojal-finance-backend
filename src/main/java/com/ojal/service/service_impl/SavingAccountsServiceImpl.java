@@ -100,7 +100,7 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
         // Create DTO
         SavingAccountDetailsDto dto = new SavingAccountDetailsDto();
         dto.setId(account.getId());
-        dto.setName(account.getUser().getName());
+        dto.setName(account.getUser().getFirstName());
         dto.setAccountNumber(account.getAccountNumber());
 
         // Set creation time with format of 12hr-am/pm

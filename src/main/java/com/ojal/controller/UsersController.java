@@ -1,11 +1,12 @@
 package com.ojal.controller;
 
+import com.ojal.global_exception.ResourceNotFoundException;
+import com.ojal.global_exception.UnauthorizedException;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.model_entity.dto.request.UserRegistrationDto;
-import com.ojal.model_entity.dto.response.GetAllUserDto;
-import com.ojal.model_entity.dto.response.UserAccountsResponse;
+import com.ojal.model_entity.dto.request.UserUpdateDto;
+import com.ojal.model_entity.dto.response.UserDto;
 import com.ojal.model_entity.dto.response.UserRegistrationResponseDto;
-import com.ojal.repository.UsersRepository;
 import com.ojal.service.UsersService;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,28 +30,16 @@ import java.util.Map;
 public class UsersController {
 
     private final UsersService userService;
-    private final UsersRepository usersRepository;
-
-    private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
-
+    private final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
     @Autowired
-    public UsersController(UsersService userService, UsersRepository usersRepository) {
+    public UsersController(UsersService userService) {
         this.userService = userService;
-        this.usersRepository = usersRepository;
     }
 
-    //-------------- User registration ---------------------//
-//    @PostMapping("/register")
-//    public ResponseEntity<UserRegistrationDto> registerUser(@RequestBody UserRegistrationDto request) {
-//        UsersEntity user = userService.createUser(request);
-//        UserRegistrationDto response = new UserRegistrationDto(user.getUserId(), user.getName(), user.getEmail(),user.getRole());
-//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//    }
-
+    //-------------------- User registration ---------------------//
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserRegistrationResponseDto> registerUserWithDocuments(
-
             @RequestPart("userData") UserRegistrationDto userData,
             @RequestPart(value = "panCard", required = false) MultipartFile panCard,
             @RequestPart(value = "aadharCard", required = false) MultipartFile aadharCard,
@@ -64,9 +54,21 @@ public class UsersController {
                     userData, panCard, aadharCard, passPortImg, voterIdImg
             );
 
-            // Prepare response
+            // Prepare response with updated fields
             UserRegistrationResponseDto response = new UserRegistrationResponseDto(
-                    user.getUserId(), user.getName(), user.getEmail(), user.getRole()
+                    user.getUserId(),
+                    user.getFirstName(),
+                    user.getMiddleName(),
+                    user.getLastName(),
+                    user.getEmail(),
+                    user.getMobile(),
+                    user.getAltMobile(),
+                    user.getGender(),
+                    user.getDob(),
+                    user.getAddress(),
+                    user.getPincode(),
+                    user.getBranch(),
+                    user.getRole()
             );
 
             // Add document status to response
@@ -80,48 +82,100 @@ public class UsersController {
         }
     }
 
-
-    //--------------- Get User Details -----------------//
-    @GetMapping("details/{userId}")
-    public ResponseEntity<?> getUserAccounts(@PathVariable String userId) {
+    //-------------------- Get user by ID ---------------------//
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDto> getUserById(@PathVariable String userId) {
+        logger.info("Fetching user with ID: {}", userId);
 
         try {
-            UsersEntity user = usersRepository.findByUserId(userId);
-
-            if (user == null) {
-                return new ResponseEntity<>("User not found with ID: " + userId, HttpStatus.NOT_FOUND);
-            }
-            UserAccountsResponse response = new UserAccountsResponse(user);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error retrieving user accounts: " + e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            UserDto user = userService.getUserById(userId);
+            return ResponseEntity.ok(user);
+        } catch (ResourceNotFoundException e) {
+            logger.error("User not found: {}", e.getMessage());
+            throw e;
         }
     }
 
-    // ------------------- Update User Information ----------------//
+    //-------------------- Update user (PUT) ---------------------//
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserDto> updateUser(
+            @PathVariable String userId,
+            @RequestBody UserUpdateDto userUpdateDto) {
+
+        logger.info("Updating user with ID: {}", userId);
+
+        try {
+            UserDto updatedUser = userService.updateUser(userId, userUpdateDto);
+            return ResponseEntity.ok(updatedUser);
+        } catch (ResourceNotFoundException e) {
+            logger.error("User not found: {}", e.getMessage());
+            throw e;
+        } catch (BadRequestException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //-------------------- Partially update user (PATCH) ---------------------//
     @PatchMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody UserRegistrationDto userRegistrationDto) {
+    public ResponseEntity<UserDto> patchUser(
+            @PathVariable String userId,
+            @RequestBody Map<String, Object> updates) throws BadRequestException {
+
+        logger.info("Partially updating user with ID: {}", userId);
+
         try {
-            userService.updateUser(userId, userRegistrationDto);
-            return ResponseEntity.ok().body("User updated successfully");
-        }
-        catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-        catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating user: " + e.getMessage());
+            UserDto patchedUser = userService.patchUser(userId, updates);
+            return ResponseEntity.ok(patchedUser);
+        } catch (ResourceNotFoundException | BadRequestException e) {
+            logger.error("User not found: {}", e.getMessage());
+            throw e;
         }
     }
 
-    // -------------------- Get All User List -------------------//
+    //-------------------- Delete user ---------------------//
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable String userId) {
+        logger.info("Deleting user with ID: {}", userId);
+
+        try {
+            userService.deleteUser(userId);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "User deleted successfully");
+            response.put("userId", userId);
+
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            logger.error("User not found: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    //-------------------- Get all users (admin only) ---------------------//
     @GetMapping("/get-all-users")
-    public ResponseEntity<List<GetAllUserDto>> getAllUsers(){
-        List<GetAllUserDto> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
-    }
+    public ResponseEntity<?> getAllUsers(@RequestParam(required = false) String role) {
+        logger.info("Fetching all users with role: {}", role);
 
+        try {
+            // Check if role is provided
+            if (role == null || role.isEmpty()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Role parameter is required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Get all users (will throw UnauthorizedException if not admin)
+            List<UserDto> users = userService.getAllUsers(role);
+            return ResponseEntity.ok(users);
+        } catch (UnauthorizedException e) {
+            logger.error("Unauthorized access: {}", e.getMessage());
+
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        }
+    }
 
 
 }

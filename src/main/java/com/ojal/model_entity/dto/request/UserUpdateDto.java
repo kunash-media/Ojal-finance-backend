@@ -1,10 +1,7 @@
-package com.ojal.model_entity.dto.response;
+package com.ojal.model_entity.dto.request;
 
-import java.util.Map;
+public class UserUpdateDto {
 
-public class UserRegistrationResponseDto {
-
-    private String userId;
     private String firstName;
     private String middleName;
     private String lastName;
@@ -17,38 +14,8 @@ public class UserRegistrationResponseDto {
     private String pincode;
     private String branch;
     private String role;
-    private Map<String, Boolean> documentStatus;
-
-    public UserRegistrationResponseDto() {
-    }
-
-    public UserRegistrationResponseDto(String userId, String firstName, String middleName, String lastName,
-                                       String email, String mobile, String altMobile, String gender,
-                                       String dob, String address, String pincode, String branch, String role) {
-        this.userId = userId;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.email = email;
-        this.mobile = mobile;
-        this.altMobile = altMobile;
-        this.gender = gender;
-        this.dob = dob;
-        this.address = address;
-        this.pincode = pincode;
-        this.branch = branch;
-        this.role = role;
-    }
 
     // Getters and Setters
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getFirstName() {
         return firstName;
     }
@@ -143,13 +110,5 @@ public class UserRegistrationResponseDto {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public Map<String, Boolean> getDocumentStatus() {
-        return documentStatus;
-    }
-
-    public void setDocumentStatus(Map<String, Boolean> documentStatus) {
-        this.documentStatus = documentStatus;
     }
 }

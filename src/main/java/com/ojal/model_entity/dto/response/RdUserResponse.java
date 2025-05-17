@@ -1,19 +1,20 @@
 package com.ojal.model_entity.dto.response;
 
 import com.ojal.controller.AccountsController;
+import com.ojal.controller.RdAccountsController;
 
 import java.util.List;
 
 public class RdUserResponse {
 
     private String userId;
-    private String name;  // Add other user fields you need
-    private List<AccountsController.AccountResponse> rdAccounts;
+    private String name;
+    private List<RdAccountsController.AccountResponse> rdAccounts;
 
     // Constructors
     public RdUserResponse() {}
 
-    public RdUserResponse(String userId, String name, List<AccountsController.AccountResponse> rdAccounts) {
+    public RdUserResponse(String userId, String name, List<RdAccountsController.AccountResponse> rdAccounts) {
         this.userId = userId;
         this.name = name;
         this.rdAccounts = rdAccounts;
@@ -36,11 +37,11 @@ public class RdUserResponse {
         this.name = name;
     }
 
-    public List<AccountsController.AccountResponse> getRdAccounts() {
+    public List<RdAccountsController.AccountResponse> getRdAccounts() {
         return rdAccounts;
     }
 
-    public void setRdAccounts(List<AccountsController.AccountResponse> rdAccounts) {
+    public void setRdAccounts(List<RdAccountsController.AccountResponse> rdAccounts) {
         this.rdAccounts = rdAccounts;
     }
 }

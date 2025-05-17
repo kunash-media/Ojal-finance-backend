@@ -1,8 +1,10 @@
 package com.ojal.model_entity.dto.response;
 
+import com.ojal.model_entity.UsersEntity;
+
 import java.util.Map;
 
-public class UserRegistrationResponseDto {
+public class UserDto {
 
     private String userId;
     private String firstName;
@@ -17,27 +19,27 @@ public class UserRegistrationResponseDto {
     private String pincode;
     private String branch;
     private String role;
+    private String createdAt;
     private Map<String, Boolean> documentStatus;
 
-    public UserRegistrationResponseDto() {
+    public UserDto() {
     }
 
-    public UserRegistrationResponseDto(String userId, String firstName, String middleName, String lastName,
-                                       String email, String mobile, String altMobile, String gender,
-                                       String dob, String address, String pincode, String branch, String role) {
-        this.userId = userId;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.email = email;
-        this.mobile = mobile;
-        this.altMobile = altMobile;
-        this.gender = gender;
-        this.dob = dob;
-        this.address = address;
-        this.pincode = pincode;
-        this.branch = branch;
-        this.role = role;
+    public UserDto(UsersEntity user) {
+        this.userId = user.getUserId();
+        this.firstName = user.getFirstName();
+        this.middleName = user.getMiddleName();
+        this.lastName = user.getLastName();
+        this.email = user.getEmail();
+        this.mobile = user.getMobile();
+        this.altMobile = user.getAltMobile();
+        this.gender = user.getGender();
+        this.dob = user.getDob();
+        this.address = user.getAddress();
+        this.pincode = user.getPincode();
+        this.branch = user.getBranch();
+        this.role = user.getRole();
+        this.createdAt = user.getCreatedAt();
     }
 
     // Getters and Setters
@@ -143,6 +145,14 @@ public class UserRegistrationResponseDto {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Map<String, Boolean> getDocumentStatus() {

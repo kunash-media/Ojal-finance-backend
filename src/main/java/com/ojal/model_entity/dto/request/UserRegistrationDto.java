@@ -4,40 +4,44 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserRegistrationDto {
-    @NotBlank(message = "Name is required")
-    private String name;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    private String firstName;
+    private String middleName;
+    private String lastName;
     private String email;
-
-    @NotBlank(message = "Password is required")
+    private String mobile;
+    private String altMobile;
+    private String gender;
+    private String dob;
+    private String address;
+    private String pincode;
+    private String branch;
     private String password;
-
-    private String createdAt;
-
     private String role;
 
-    // Default constructor
-    public UserRegistrationDto() {
+    // Getters and Setters
+    public String getFirstName() {
+        return firstName;
     }
 
-    // Constructor
-    public UserRegistrationDto(String name, String email, String password, String createdAt, String role) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.createdAt = createdAt;
-        this.role = role;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    // Getters and setters
-    public String getName() {
-        return name;
+    public String getMiddleName() {
+        return middleName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {
@@ -48,16 +52,64 @@ public class UserRegistrationDto {
         this.email = email;
     }
 
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public String getAltMobile() {
+        return altMobile;
+    }
+
+    public void setAltMobile(String altMobile) {
+        this.altMobile = altMobile;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
     public String getPassword() {
         return password;
-    }
-
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
     }
 
     public void setPassword(String password) {
@@ -72,4 +124,3 @@ public class UserRegistrationDto {
         this.role = role;
     }
 }
-

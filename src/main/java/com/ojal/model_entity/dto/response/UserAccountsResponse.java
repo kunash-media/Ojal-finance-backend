@@ -17,7 +17,7 @@ public class UserAccountsResponse {
     // Constructor to build from user entity
     public UserAccountsResponse(UsersEntity user) {
         this.userId = user.getUserId();
-        this.userName = user.getName();
+        this.userName = user.getFirstName();
         this.userRole = user.getRole();
         this.savingAccounts = user.getSavingAccounts();
         this.rdAccounts = user.getRdAccounts();

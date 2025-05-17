@@ -20,14 +20,39 @@ public class UsersEntity {
     @Column(name = "user_id", unique = true, nullable = false, updatable = false)
     private String userId;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "middle_name")
+    private String middleName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
 
     @Column(unique = true, nullable = false)
     private String email;
 
     @Column(nullable = false)
-    private String password;
+    private String mobile;
+
+    @Column(name = "alt_mobile")
+    private String altMobile;
+
+    @Column(nullable = false)
+    private String gender;
+
+    @Column(nullable = false)
+    private String dob;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
+    private String pincode;
+
+    @Column(nullable = false)
+    private String branch;
+
 
     @Column(name="created_at")
     private String createdAt;
@@ -124,44 +149,32 @@ public class UsersEntity {
         return userId;
     }
 
-    public UsersEntity() {
-    }
-
-    public UsersEntity(Long id, String userId, String name, String email,
-                       String password, String createdAt, String role,
-                       byte[] panCard, byte[] aadharCard, byte[] passPortImg, byte[] voterIdImg) {
-
-        this.id = id;
-        this.userId = userId;
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.createdAt = createdAt;
-        this.role = role;
-        this.panCard = panCard;
-        this.aadharCard = aadharCard;
-        this.passPortImg = passPortImg;
-        this.voterIdImg = voterIdImg;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getMiddleName() {
+        return middleName;
+    }
+
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {
@@ -172,8 +185,69 @@ public class UsersEntity {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public String getAltMobile() {
+        return altMobile;
+    }
+
+    public void setAltMobile(String altMobile) {
+        this.altMobile = altMobile;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getRole() {
@@ -182,34 +256,6 @@ public class UsersEntity {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public List<SavingAccountsEntity> getSavingAccounts() {
-        return savingAccounts;
-    }
-
-    public List<RdAccountsEntity> getRdAccounts() {
-        return rdAccounts;
-    }
-
-    public List<FdAccountsEntity> getFdAccounts() {
-        return fdAccounts;
-    }
-
-    public List<LoanAccountsEntity> getLoanAccounts() {
-        return loanAccounts;
-    }
-
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
     }
 
     public byte[] getPanCard() {
@@ -243,4 +289,68 @@ public class UsersEntity {
     public void setVoterIdImg(byte[] voterIdImg) {
         this.voterIdImg = voterIdImg;
     }
+
+    public List<SavingAccountsEntity> getSavingAccounts() {
+        return savingAccounts;
+    }
+
+    public void setSavingAccounts(List<SavingAccountsEntity> savingAccounts) {
+        this.savingAccounts = savingAccounts;
+    }
+
+    public List<RdAccountsEntity> getRdAccounts() {
+        return rdAccounts;
+    }
+
+    public void setRdAccounts(List<RdAccountsEntity> rdAccounts) {
+        this.rdAccounts = rdAccounts;
+    }
+
+    public List<FdAccountsEntity> getFdAccounts() {
+        return fdAccounts;
+    }
+
+    public void setFdAccounts(List<FdAccountsEntity> fdAccounts) {
+        this.fdAccounts = fdAccounts;
+    }
+
+    public List<LoanAccountsEntity> getLoanAccounts() {
+        return loanAccounts;
+    }
+
+    public void setLoanAccounts(List<LoanAccountsEntity> loanAccounts) {
+        this.loanAccounts = loanAccounts;
+    }
+
+    public UsersEntity() {
+    }
+
+    public UsersEntity(Long id, String userId, String firstName, String middleName, String lastName,
+                       String email, String mobile, String altMobile, String gender, String dob,
+                       String address, String pincode, String branch,
+                       String createdAt, String role, byte[] panCard, byte[] aadharCard,
+                       byte[] passPortImg, byte[] voterIdImg) {
+        this.id = id;
+        this.userId = userId;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.email = email;
+        this.mobile = mobile;
+        this.altMobile = altMobile;
+        this.gender = gender;
+        this.dob = dob;
+        this.address = address;
+        this.pincode = pincode;
+        this.branch = branch;
+        this.createdAt = createdAt;
+        this.role = role;
+        this.panCard = panCard;
+        this.aadharCard = aadharCard;
+        this.passPortImg = passPortImg;
+        this.voterIdImg = voterIdImg;
+    }
+
+
 }
+
