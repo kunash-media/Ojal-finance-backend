@@ -306,4 +306,43 @@ public class UsersServiceImpl implements UsersService {
 
         return userDtos;
     }
+
+    @Override
+    public List<UserDto> getUsersByBranch(String branchName) {
+        List<UsersEntity> users = usersRepository.findByBranchIgnoreCase(branchName);
+        return users.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    private UserDto convertToDto(UsersEntity user) {
+        // Implementation of entity to DTO conversion
+        // This is a simplified version, adapt based on your actual UserDto structure
+        UserDto dto = new UserDto();
+        dto.setUserId(user.getUserId());
+        dto.setFirstName(user.getFirstName());
+        dto.setMiddleName(user.getMiddleName());
+        dto.setLastName(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setMobile(user.getMobile());
+        dto.setAltMobile(user.getAltMobile());
+        dto.setGender(user.getGender());
+        dto.setDob(user.getDob());
+        dto.setAddress(user.getAddress());
+        dto.setPincode(user.getPincode());
+        dto.setBranch(user.getBranch());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setRole(user.getRole());
+
+        // Set document status fields if needed
+        Map<String, Boolean> documentStatus = new HashMap<>();
+        documentStatus.put("panCard", user.getPanCard() != null);
+        documentStatus.put("aadharCard", user.getAadharCard() != null);
+        documentStatus.put("passportImg", user.getPassPortImg() != null);
+        documentStatus.put("voterIdImg", user.getVoterIdImg() != null);
+        dto.setDocumentStatus(documentStatus);
+
+        return dto;
+    }
+
 }

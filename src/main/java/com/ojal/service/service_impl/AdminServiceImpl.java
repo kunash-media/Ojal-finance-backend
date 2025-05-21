@@ -33,7 +33,6 @@ public class AdminServiceImpl implements AdminService {
         if (adminDTO.getUsername() == null) {
             throw new IllegalArgumentException("Username is required");
         }
-
         if (existUserName.isPresent()) {
             throw new IllegalArgumentException("Username is Already Exists, Choose Different one");
         }
@@ -41,14 +40,12 @@ public class AdminServiceImpl implements AdminService {
         if (adminRepository.existsByEmail(adminDTO.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
-
         // Convert DTO to Entity
         AdminEntity adminEntity = convertToEntity(adminDTO);
 
         // Encode password
         adminEntity.setPassword(passwordEncoder.encode(adminDTO.getPassword()));
 
-        // Save entity
         AdminEntity savedAdmin = adminRepository.save(adminEntity);
 
         // Convert saved entity back to DTO and return
@@ -152,7 +149,8 @@ public class AdminServiceImpl implements AdminService {
         adminEntity.setGender(adminDTO.getGender());
         adminEntity.setBranchName(adminDTO.getBranchName());
         adminEntity.setUsername(adminDTO.getUsername());
-        adminEntity.setRole(adminDTO.getRole());
+
+        adminEntity.setRole("ROLE_ADMIN");
 
         // Handle adminId separately - don't overwrite if it exists
         if (adminDTO.getAdminId() != null) {

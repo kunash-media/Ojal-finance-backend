@@ -40,4 +40,6 @@ public interface UsersService {
 
     // Get all users (admin only)
     List<UserDto> getAllUsers(String role) throws UnauthorizedException;
+
+    List<UserDto> getUsersByBranch(String branchName);
 }

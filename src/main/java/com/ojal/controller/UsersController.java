@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/users")
 public class UsersController {
@@ -176,6 +176,14 @@ public class UsersController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
         }
     }
+
+    //--------- get all users by branch --------------//
+    @GetMapping("/branch-users")
+    public ResponseEntity<List<UserDto>> allUsersByBranch(@RequestParam("branchName") String branch){
+        return ResponseEntity.ok(userService.getUsersByBranch(branch));
+    }
+
+
 
 
 }

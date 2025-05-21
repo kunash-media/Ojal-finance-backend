@@ -25,4 +25,11 @@ public interface UsersRepository extends JpaRepository<UsersEntity, Long> {
 
     // Find users by role
     List<UsersEntity> findByRole(String role);
+
+    /**
+     * Find users by their branch name (case insensitive)
+     * @param branch the branch name to search for
+     * @return list of users belonging to the branch
+     */
+    List<UsersEntity> findByBranchIgnoreCase(String branch);
 }

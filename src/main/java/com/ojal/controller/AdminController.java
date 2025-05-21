@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/admins")
 public class AdminController {
@@ -36,7 +37,7 @@ public class AdminController {
         return ResponseEntity.ok(adminDTO);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<AdminDTO> loginAdmin(
             @RequestParam String username,
             @RequestParam String password) {
@@ -44,6 +45,7 @@ public class AdminController {
         AdminDTO adminDTO = adminService.getAdminByCredentials(username, password);
         return ResponseEntity.ok(adminDTO);
     }
+
 
     // Get all admins
     @GetMapping
