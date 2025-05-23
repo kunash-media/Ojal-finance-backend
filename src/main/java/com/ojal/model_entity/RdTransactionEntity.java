@@ -40,7 +40,6 @@ public class RdTransactionEntity {
     private String note;
 
 
-
     @Column(name = "balance_after")
     private BigDecimal balanceAfter;
 

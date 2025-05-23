@@ -11,7 +11,11 @@ public interface FdAccountsService {
 
     FdAccountsEntity findByAccountNumber(String accountNumber);
 
-//    List<FdAccountsEntity> findAllByUserId(String userId);
+    List<FdAccountsEntity> findAllByUserId(String userId);
 
-//    FdAccountsEntity processMaturity(String accountNumber);
+    List<FdAccountsEntity> findAllAccounts();
+
+    FdAccountsEntity updateAccount(String accountNumber, FdAccountsDto request);
+
+    void deleteAccount(String accountNumber);
 }
