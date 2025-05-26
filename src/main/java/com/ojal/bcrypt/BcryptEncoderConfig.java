@@ -1,6 +1,5 @@
 package com.ojal.bcrypt;
 
-
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 public class BcryptEncoderConfig {

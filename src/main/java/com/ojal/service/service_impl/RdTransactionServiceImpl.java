@@ -58,6 +58,7 @@ public class RdTransactionServiceImpl implements RdTransactionService {
         transaction.setNote(transactionDTO.getNote());
 
         // Update account balance based on transaction
+
         BigDecimal newBalance;
         if (transactionDTO.getPayMode() != null &&
                 (transactionDTO.getPayMode().equalsIgnoreCase("WITHDRAWAL") ||
