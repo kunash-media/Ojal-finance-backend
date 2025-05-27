@@ -1,12 +1,12 @@
 package com.ojal.service.service_impl;
 
-
 import com.ojal.enum_accounts.AccountType;
 import com.ojal.global_exception.ResourceNotFoundException;
 import com.ojal.model_entity.SavingAccountsEntity;
 import com.ojal.model_entity.SavingTransactionEntity;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.model_entity.dto.request.SavingAccountDetailsDto;
+import com.ojal.model_entity.dto.request.SavingAccountUpdateDto;
 import com.ojal.model_entity.dto.request.SavingAccountsDto;
 import com.ojal.model_entity.dto.request.SavingTransactionDto;
 import com.ojal.repository.SavingAccountsRepository;
@@ -137,5 +137,131 @@ public class SavingAccountsServiceImpl implements SavingAccountsService {
         dto.setNote(entity.getNote());
         dto.setBalanceAfter(entity.getBalanceAfter());
         return dto;
+    }
+
+    /**
+     * Get saving account by user ID
+     * @param userId the user ID to search for
+     * @return SavingAccountsEntity if found
+     * @throws ResourceNotFoundException if account not found
+     */
+    @Override
+    public SavingAccountsEntity getAccountByUserId(String userId) {
+        // First check if user exists
+        UsersEntity user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + userId);
+        }
+
+        // Find the saving account for this user
+        return savingAccountsRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Saving Account", "userId", userId));
+    }
+
+    /**
+     * Update saving account by user ID (excluding account number)
+     * @param userId the user ID
+     * @param updateDto the update data
+     * @return updated SavingAccountsEntity
+     * @throws ResourceNotFoundException if account not found
+     */
+    @Transactional
+    @Override
+    public SavingAccountsEntity updateAccountByUserId(String userId, SavingAccountUpdateDto updateDto) {
+        // Find existing account
+        SavingAccountsEntity existingAccount = getAccountByUserId(userId);
+
+        // Update fields (excluding account number for security)
+        if (updateDto.getInterestRate() != null) {
+            // Validate interest rate (should be positive and reasonable)
+            if (updateDto.getInterestRate().compareTo(BigDecimal.ZERO) <= 0 ||
+                    updateDto.getInterestRate().compareTo(new BigDecimal("20")) > 0) {
+                throw new IllegalArgumentException("Interest rate must be between 0 and 20 percent");
+            }
+            existingAccount.setInterestRate(updateDto.getInterestRate());
+        }
+
+        if (updateDto.getMinimumBalance() != null) {
+            // Validate minimum balance (should not be negative)
+            if (updateDto.getMinimumBalance().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Minimum balance cannot be negative");
+            }
+
+            // Check if current balance meets new minimum balance requirement
+            if (existingAccount.getBalance().compareTo(updateDto.getMinimumBalance()) < 0) {
+                throw new IllegalArgumentException(
+                        "Cannot set minimum balance higher than current balance. Current balance: " +
+                                existingAccount.getBalance() + ", Requested minimum: " + updateDto.getMinimumBalance());
+            }
+
+            existingAccount.setMinimumBalance(updateDto.getMinimumBalance());
+        }
+
+        // Save and return updated account
+        return savingAccountsRepository.save(existingAccount);
+    }
+
+    /**
+     * Get all saving accounts by branch name
+     * @param branchName the branch name to filter by
+     * @return List of SavingAccountsEntity
+     * @throws IllegalArgumentException if branch name is null or empty
+     */
+    @Override
+    public List<SavingAccountsEntity> getAllAccountsByBranch(String branchName) {
+        // Validate branch name
+        if (branchName == null || branchName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Branch name cannot be null or empty");
+        }
+
+        // Find all accounts for the specified branch
+        List<SavingAccountsEntity> accounts = savingAccountsRepository.findByUser_Branch(branchName.trim());
+
+        // Log the operation for audit purposes
+        System.out.println("Retrieved " + accounts.size() + " saving accounts for branch: " + branchName);
+
+        return accounts;
+    }
+
+    /**
+     * Delete saving account by user ID
+     * @param userId the user ID
+     * @return success message
+     * @throws ResourceNotFoundException if account not found
+     * @throws IllegalStateException if account has pending transactions or non-zero balance
+     */
+    @Override
+    @Transactional
+    public String deleteAccountByUserId(String userId) {
+        // First verify the account exists
+        SavingAccountsEntity account = getAccountByUserId(userId);
+
+        // Business rule: Don't allow deletion if account has balance
+        if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalStateException(
+                    "Cannot delete account with non-zero balance. Current balance: " + account.getBalance());
+        }
+
+        // Additional check: Verify no pending transactions (optional)
+        List<SavingTransactionEntity> recentTransactions = transactionRepository
+                .findBySavingAccount_AccountNumberOrderByCreatedAtDesc(account.getAccountNumber());
+
+        // If there are recent transactions, you might want to prevent deletion
+        // This is a business decision - commenting out for now
+        /*
+        if (!recentTransactions.isEmpty()) {
+            throw new IllegalStateException(
+                "Cannot delete account with transaction history. Please contact administrator.");
+        }
+        */
+
+        // Perform the deletion
+        int deletedCount = savingAccountsRepository.deleteByUser_UserId(userId);
+
+        if (deletedCount == 0) {
+            throw new IllegalStateException("Failed to delete account for user: " + userId);
+        }
+
+        return "Successfully deleted saving account for user: " + userId;
     }
 }

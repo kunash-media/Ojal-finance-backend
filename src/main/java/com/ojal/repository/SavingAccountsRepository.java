@@ -2,6 +2,9 @@ package com.ojal.repository;
 
 import com.ojal.model_entity.SavingAccountsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,4 +26,28 @@ public interface SavingAccountsRepository extends JpaRepository<SavingAccountsEn
     // Additional useful queries
 //    long countByUser_UserId(String userId);  // Count accounts by custom userId
     boolean existsByUser_UserId(String userId);  // Check if user has any accounts
+
+    /**
+     * Find saving account by user's custom userId
+     * @param userId the custom user ID
+     * @return Optional<SavingAccountsEntity>
+     */
+    Optional<SavingAccountsEntity> findByUser_UserId(String userId);
+
+    /**
+     * Find all saving accounts by user's branch
+     * @param branch the branch name
+     * @return List<SavingAccountsEntity>
+     */
+    List<SavingAccountsEntity> findByUser_Branch(String branch);
+
+    /**
+     * Delete saving account by user's custom userId
+     * @param userId the custom user ID
+     * @return number of deleted records
+     */
+    @Modifying
+    @Query("DELETE FROM SavingAccountsEntity s WHERE s.user.userId = :userId")
+    int deleteByUser_UserId(@Param("userId") String userId);
+
 }
