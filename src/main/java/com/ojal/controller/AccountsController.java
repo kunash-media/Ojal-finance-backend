@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountsController {
@@ -29,6 +30,7 @@ public class AccountsController {
         this.fdAccountService = fdAccountService;
         this.loanAccountService = loanAccountService;
     }
+
 
     @PostMapping("/{userId}/saving")
     public ResponseEntity<AccountResponse> createSavingAccount(@PathVariable String userId, @RequestBody SavingAccountsDto request) {
@@ -64,6 +66,7 @@ public class AccountsController {
         public AccountResponse(String accountNumber, AccountType accountType) {
             this.accountNumber = accountNumber;
             this.accountType = accountType;
+
         }
 
         public String getAccountNumber() {
@@ -82,4 +85,6 @@ public class AccountsController {
             this.accountType = accountType;
         }
     }
+
+
 }

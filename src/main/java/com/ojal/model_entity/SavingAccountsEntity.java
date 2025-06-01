@@ -15,15 +15,13 @@ public class SavingAccountsEntity extends BaseAccountEntity {
     @JsonBackReference
     private UsersEntity user;
 
-
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
     @Column(name = "interest_rate", nullable = false)
     private BigDecimal interestRate;
 
-
-    @Column(name = "minimum_balance")
+    @Column(name = "minimum_balance", nullable = false)
     private BigDecimal minimumBalance = BigDecimal.ZERO;
 
     @PrePersist
@@ -31,6 +29,16 @@ public class SavingAccountsEntity extends BaseAccountEntity {
         super.onCreate();
         if (getAccountNumber() == null) {
             setAccountNumber(generateAccountNumber());
+        }
+        // Ensure no null values before persist
+        if (this.balance == null) {
+            this.balance = BigDecimal.ZERO;
+        }
+        if (this.interestRate == null) {
+            this.interestRate = BigDecimal.ZERO;
+        }
+        if (this.minimumBalance == null) {
+            this.minimumBalance = BigDecimal.ZERO;
         }
     }
 

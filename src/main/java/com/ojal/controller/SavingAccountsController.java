@@ -17,7 +17,7 @@ import java.util.Map;
 
 import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/saving")
 public class SavingAccountsController {
@@ -112,7 +112,7 @@ public class SavingAccountsController {
                 return ResponseEntity.ok(response);
             }
 
-            response.put("message", "Successfully retrieved accounts for branch: " + branchName);
+            //response.put("message", "Successfully retrieved accounts for branch: " + branchName);
             response.put("accounts", accounts);
             response.put("count", accounts.size());
             return ResponseEntity.ok(response);
@@ -168,7 +168,5 @@ public class SavingAccountsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-
-
 
 }

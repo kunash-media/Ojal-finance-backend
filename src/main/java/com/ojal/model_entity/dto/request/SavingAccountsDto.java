@@ -1,11 +1,18 @@
 package com.ojal.model_entity.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 
 public class SavingAccountsDto {
 
+    @JsonProperty("interestRate")
     private BigDecimal interestRate;
+
+    @JsonProperty("minimumBalance")
     private BigDecimal minimumBalance;
+
+    @JsonProperty("initialDeposit")
     private BigDecimal initialDeposit;
 
     // Getters and setters

@@ -178,7 +178,7 @@ public class UsersController {
     }
 
     //--------- get all users by branch --------------//
-    @GetMapping("/branch-users")
+    @GetMapping("/get-all-branch")
     public ResponseEntity<List<UserDto>> allUsersByBranch(@RequestParam("branchName") String branch){
         return ResponseEntity.ok(userService.getUsersByBranch(branch));
     }
