@@ -45,4 +45,12 @@ public interface SavingAccountsService {
      * @return success message
      */
     String deleteAccountByUserId(String userId);
+
+    // ADD this new method:
+    /**
+     * Delete saving account with all its transactions by account number
+     * @param accountNumber the account number
+     * @return success message
+     */
+    String deleteAccountWithTransactions(String accountNumber);
 }

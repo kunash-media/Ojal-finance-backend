@@ -179,4 +179,10 @@ public class AdminServiceImpl implements AdminService {
         // If we get here, credentials are valid
         return convertToDTO(adminEntity);
     }
+
+
+    @Override
+    public List<String> getAllBranchNames() {
+        return adminRepository.findAllDistinctBranchNames();
+    }
 }

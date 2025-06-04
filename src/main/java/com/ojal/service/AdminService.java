@@ -28,4 +28,6 @@ public interface AdminService {
     boolean isEmailExists(String email);
 
     AdminDTO getAdminByPhone(String phone);
+
+    List<String> getAllBranchNames();
 }

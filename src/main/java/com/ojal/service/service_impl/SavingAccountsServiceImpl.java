@@ -200,6 +200,9 @@ SavingAccountsServiceImpl implements SavingAccountsService {
         return accounts;
     }
 
+    // 2. UPDATE: SavingAccountsServiceImpl.java
+// REPLACE your existing deleteAccountByUserId method with this updated version
+
     /**
      * Delete saving account by user ID
      * @param userId the user ID
@@ -225,21 +228,54 @@ SavingAccountsServiceImpl implements SavingAccountsService {
 
         // If there are recent transactions, you might want to prevent deletion
         // This is a business decision - commenting out for now
-        /*
-        if (!recentTransactions.isEmpty()) {
-            throw new IllegalStateException(
-                "Cannot delete account with transaction history. Please contact administrator.");
-        }
-        */
+    /*
+    if (!recentTransactions.isEmpty()) {
+        throw new IllegalStateException(
+            "Cannot delete account with transaction history. Please contact administrator.");
+    }
+    */
 
-        // Perform the deletion
+        // UPDATED DELETION LOGIC:
+        // Step 1: Delete all transactions for this user's saving account first
+        transactionRepository.deleteByUserUserId(userId);
+
+        // Step 2: Now delete the saving account
         int deletedCount = savingAccountsRepository.deleteByUser_UserId(userId);
 
         if (deletedCount == 0) {
             throw new IllegalStateException("Failed to delete account for user: " + userId);
         }
 
-        return "Successfully deleted saving account for user: " + userId;
+        return "Successfully deleted saving account and all associated transactions for user: " + userId;
+    }
+
+// ADD this helper method to your service implementation class (if not already present)
+// This method should be in your SavingAccountsServiceImpl class
+
+    /**
+     * Delete saving account with all its transactions by account number
+     * @param accountNumber the account number
+     * @return success message
+     */
+    @Transactional
+    public String deleteAccountWithTransactions(String accountNumber) {
+        // Verify account exists
+        SavingAccountsEntity account = savingAccountsRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Saving Account", "accountNumber", accountNumber));
+
+        // Business rule: Check balance
+        if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalStateException(
+                    "Cannot delete account with non-zero balance. Current balance: " + account.getBalance());
+        }
+
+        // Delete transactions first
+        transactionRepository.deleteByAccountNumber(accountNumber);
+
+        // Delete the account
+        savingAccountsRepository.delete(account);
+
+        return "Successfully deleted saving account and all associated transactions for account: " + accountNumber;
     }
 
     /**

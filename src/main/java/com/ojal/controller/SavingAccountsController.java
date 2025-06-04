@@ -169,4 +169,41 @@ public class SavingAccountsController {
         }
     }
 
+    /**
+     * Delete saving account by account number (alternative endpoint)
+     * DELETE /api/accounts/delete-by-accountNumber/{accountNumber}
+     */
+    @DeleteMapping("/delete-by-accountNumber/{accountNumber}")
+    public ResponseEntity<?> deleteAccountByAccountNumber(@PathVariable String accountNumber) {
+        try {
+            String message = savingAccountsService.deleteAccountWithTransactions(accountNumber);
+
+            // Create success response map for Java 8 compatibility
+            Map<String, String> response = new HashMap<>();
+            response.put("message", message);
+            response.put("accountNumber", accountNumber);
+            response.put("status", "SUCCESS");
+            return ResponseEntity.ok(response);
+
+        } catch (ResourceNotFoundException e) {
+            // Create error response map for Java 8 compatibility
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Account Not Found");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (IllegalStateException e) {
+            // Create error response map for Java 8 compatibility
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Cannot Delete Account");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        } catch (Exception e) {
+            // Create error response map for Java 8 compatibility
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Internal Server Error");
+            errorResponse.put("message", "An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
 }

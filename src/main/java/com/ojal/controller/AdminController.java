@@ -143,4 +143,10 @@ public class AdminController {
         AdminDTO adminDTO = adminService.getAdminByPhone(phone);
         return ResponseEntity.ok(adminDTO);
     }
+
+    @GetMapping("/get-branch-list")
+    public ResponseEntity<List<String>> getAllBranchNames() {
+        List<String> branchNames = adminService.getAllBranchNames();
+        return ResponseEntity.ok(branchNames);
+    }
 }

@@ -289,7 +289,7 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public List<UserDto> getAllUsers(String role) throws UnauthorizedException {
         // Verify admin role
-        if (!"ROLE_ADMIN".equals(role)) {
+        if (!"SUPER_ADMIN".equals(role)) {
             throw new UnauthorizedException("Only administrators can access this resource");
         }
 
@@ -298,6 +298,7 @@ public class UsersServiceImpl implements UsersService {
 
         // Convert to DTOs
         List<UserDto> userDtos = new ArrayList<>();
+
         for (UsersEntity user : users) {
             UserDto dto = new UserDto(user);
             dto.setDocumentStatus(getDocumentsStatus(user.getUserId()));
