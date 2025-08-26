@@ -80,6 +80,6 @@ public class BaseAccountEntity {
 
     // Enum for account status
     public enum AccountStatus {
-        ACTIVE, INACTIVE, SUSPENDED, CLOSED
+        ACTIVE, INACTIVE, CLOSED
     }
 }
