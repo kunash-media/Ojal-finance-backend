@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Table(name = "loan_accounts_table")
 public class LoanAccountsEntity extends BaseAccountEntity {
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     @JsonBackReference
