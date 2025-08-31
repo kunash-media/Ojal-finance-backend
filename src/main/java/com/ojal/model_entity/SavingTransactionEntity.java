@@ -3,6 +3,9 @@ package com.ojal.model_entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "saving_transactions")
@@ -20,7 +23,7 @@ public class SavingTransactionEntity {
     @Column(nullable = false)
     private String createdAt;
 
-    @Column(nullable = false)
+    @Column(name="daily_amount", nullable = false)
     private BigDecimal amount;
 
     @Column(name = "pay_mode")
@@ -39,7 +42,18 @@ public class SavingTransactionEntity {
     @Column(name = "balance_after")
     private BigDecimal balanceAfter;
 
+
     public SavingTransactionEntity() {
+    }
+
+    // ADD THIS METHOD - Same logic as BaseAccountEntity
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+            this.createdAt = now.format(formatter);
+        }
     }
 
     public SavingTransactionEntity(Long id, SavingAccountsEntity savingAccount, String createdAt,

@@ -1,5 +1,6 @@
 package com.ojal.service.service_impl;
 
+import com.ojal.controller.LoanAccountsController;
 import com.ojal.enum_accounts.AccountType;
 import com.ojal.global_exception.ResourceNotFoundException;
 import com.ojal.model_entity.SavingAccountsEntity;
@@ -14,6 +15,8 @@ import com.ojal.repository.SavingTransactionRepository;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.SavingAccountsService;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -37,7 +40,10 @@ SavingAccountsServiceImpl implements SavingAccountsService {
     private final UsersRepository userRepository;
     private final SavingTransactionRepository transactionRepository;
 
-    @Value("${account.savings.default-minimum-balance:1000}")
+    private static final Logger logger = LoggerFactory.getLogger(SavingAccountsServiceImpl.class);
+
+
+    @Value("${account.savings.default-minimum-balance:100}")
     private BigDecimal defaultMinimumBalance;
 
     @Autowired
@@ -109,45 +115,69 @@ SavingAccountsServiceImpl implements SavingAccountsService {
     }
 
     @Override
+    @Transactional(readOnly = true) // ADD THIS ANNOTATION
     public SavingAccountDetailsDto getAccountWithTransactions(String accountNumber) {
-        // Get the account
-        SavingAccountsEntity account = findByAccountNumber(accountNumber);
+        logger.info("Fetching account details with transactions for account: {}", accountNumber);
 
-        // Get associated transactions
-        List<SavingTransactionEntity> transactions = transactionRepository
-                .findBySavingAccount_AccountNumberOrderByCreatedAtDesc(accountNumber);
+        try {
+            // Get the account
+            SavingAccountsEntity account = findByAccountNumber(accountNumber);
+            logger.debug("Retrieved account - ID: {}, Name: {}, Balance: {}",
+                    account.getId(), account.getUser().getFirstName(), account.getBalance());
 
-        // Create DTO
-        SavingAccountDetailsDto dto = new SavingAccountDetailsDto();
-        dto.setId(account.getId());
-        dto.setName(account.getUser().getFirstName());
-        dto.setAccountNumber(account.getAccountNumber());
+            // Get associated transactions - Same repository, should work now
+            List<SavingTransactionEntity> transactions = transactionRepository
+                    .findBySavingAccount_AccountNumberOrderByCreatedAtDesc(accountNumber);
+            logger.debug("Retrieved {} transactions for account: {}", transactions.size(), accountNumber);
 
-        // Set creation time with format of 12hr-am/pm
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+            // Debug: Log raw entities before mapping
+            transactions.forEach(txn -> {
+                logger.debug("Raw transaction before mapping - ID: {}, CreatedAt: '{}'",
+                        txn.getId(), txn.getCreatedAt());
+            });
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+            // Create DTO
+            SavingAccountDetailsDto dto = new SavingAccountDetailsDto();
+            dto.setId(account.getId());
+            dto.setName(account.getUser().getFirstName());
+            dto.setAccountNumber(account.getAccountNumber());
+            dto.setCreatedAt(account.getCreatedAt());
+            dto.setAccountType(AccountType.SAVING_AC.name());
+            dto.setCurrentBalance(account.getBalance());
+            dto.setInterestRate(account.getInterestRate());
+            dto.setStatus(account.getStatus().name());
 
-        String formattedTime = now.format(formatter);
+            logger.debug("Account DTO populated - Type: {}, Status: {}, Interest Rate: {}",
+                    dto.getAccountType(), dto.getStatus(), dto.getInterestRate());
 
-        dto.setCreatedAt(formattedTime);
-        dto.setAccountType(AccountType.SAVING_AC.name());
-        dto.setCurrentBalance(account.getBalance());
-        dto.setInterestRate(account.getInterestRate());
-        dto.setStatus(account.getStatus().name());
+            // Map transactions to DTOs
+            List<SavingTransactionDto> transactionDtos = transactions.stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+            dto.setTransactionData(transactionDtos);
 
-        // Map transactions to DTOs
-        List<SavingTransactionDto> transactionDtos = transactions.stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-        dto.setTransactionData(transactionDtos);
+            logger.info("Successfully processed account details for: {} with {} transactions",
+                    accountNumber, transactionDtos.size());
+            return dto;
 
-        return dto;
+        } catch (Exception e) {
+            logger.error("Failed to fetch account details with transactions for account: {} - Error: {}",
+                    accountNumber, e.getMessage(), e);
+            throw e;
+        }
     }
 
     private SavingTransactionDto mapToDto(SavingTransactionEntity entity) {
+        logger.debug("Mapping transaction entity to DTO - Transaction ID: {}", entity.getId());
+
         SavingTransactionDto dto = new SavingTransactionDto();
         dto.setId(entity.getId());
+
+        // Log the createdAt value for debugging the null issue
+        String createdAtValue = entity.getCreatedAt();
+        logger.debug("Transaction ID: {} - CreatedAt value: '{}' (null: {})",
+                entity.getId(), createdAtValue, createdAtValue == null);
+
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setAmount(entity.getAmount());
         dto.setPayMode(entity.getPayMode());
@@ -156,6 +186,14 @@ SavingAccountsServiceImpl implements SavingAccountsService {
         dto.setChequeNumber(entity.getChequeNumber());
         dto.setNote(entity.getNote());
         dto.setBalanceAfter(entity.getBalanceAfter());
+
+        logger.debug("Mapped transaction - ID: {}, Amount: {}, PayMode: {}, BalanceAfter: {}",
+                dto.getId(), dto.getAmount(), dto.getPayMode(), dto.getBalanceAfter());
+
+        // Additional debug log specifically for the createdAt issue
+        if (dto.getCreatedAt() == null) {
+            logger.warn("CreatedAt is null for transaction ID: {} - This may cause display issues", dto.getId());
+        }
         return dto;
     }
 

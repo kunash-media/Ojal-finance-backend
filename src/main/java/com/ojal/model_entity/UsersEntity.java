@@ -72,6 +72,9 @@ public class UsersEntity {
     @Column(name="voter_id_img",columnDefinition = "LONGBLOB")
     private byte[] voterIdImg;
 
+    @Column(name="user_signature_img",columnDefinition = "LONGBLOB")
+    private byte[] userSignatureImg;
+
     // One-to-many relationships with account entities
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -88,10 +91,10 @@ public class UsersEntity {
     @JsonIgnore
     private List<FdAccountsEntity> fdAccounts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    @JsonIgnore
-    private List<LoanAccountsEntity> loanAccounts = new ArrayList<>();
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JsonManagedReference
+//    @JsonIgnore
+//    private List<LoanAccountsEntity> loanAccounts = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -139,9 +142,50 @@ public class UsersEntity {
         account.setUser(this);
     }
 
-    public void addLoanAccount(LoanAccountsEntity account) {
-        loanAccounts.add(account);
-        account.setUser(this);
+
+    public UsersEntity() {}
+
+    public UsersEntity(Long id, String userId, String firstName, String middleName, String lastName,
+                       String email, String mobile, String altMobile, String gender, String dob,
+                       String address, String pincode, String branch,
+                       String createdAt, String role, byte[] panCard, byte[] aadharCard,
+                       byte[] passPortImg, byte[] voterIdImg, byte[] userSignatureImg) {
+        this.id = id;
+        this.userId = userId;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.email = email;
+        this.mobile = mobile;
+        this.altMobile = altMobile;
+        this.gender = gender;
+        this.dob = dob;
+        this.address = address;
+        this.pincode = pincode;
+        this.branch = branch;
+        this.createdAt = createdAt;
+        this.role = role;
+        this.panCard = panCard;
+        this.aadharCard = aadharCard;
+        this.passPortImg = passPortImg;
+        this.voterIdImg = voterIdImg;
+        this.userSignatureImg = userSignatureImg;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public UsersRepository getUsersRepository() {
+        return usersRepository;
+    }
+
+    public void setUsersRepository(UsersRepository usersRepository) {
+        this.usersRepository = usersRepository;
     }
 
     // Standard getters and setters
@@ -290,6 +334,14 @@ public class UsersEntity {
         this.voterIdImg = voterIdImg;
     }
 
+    public byte[] getUserSignatureImg() {
+        return userSignatureImg;
+    }
+
+    public void setUserSignatureImg(byte[] userSignatureImg) {
+        this.userSignatureImg = userSignatureImg;
+    }
+
     public List<SavingAccountsEntity> getSavingAccounts() {
         return savingAccounts;
     }
@@ -314,43 +366,12 @@ public class UsersEntity {
         this.fdAccounts = fdAccounts;
     }
 
-    public List<LoanAccountsEntity> getLoanAccounts() {
-        return loanAccounts;
-    }
+//    public List<LoanAccountsEntity> getLoanAccounts() {
+//        return loanAccounts;
+//    }
 
-    public void setLoanAccounts(List<LoanAccountsEntity> loanAccounts) {
-        this.loanAccounts = loanAccounts;
-    }
-
-    public UsersEntity() {
-    }
-
-    public UsersEntity(Long id, String userId, String firstName, String middleName, String lastName,
-                       String email, String mobile, String altMobile, String gender, String dob,
-                       String address, String pincode, String branch,
-                       String createdAt, String role, byte[] panCard, byte[] aadharCard,
-                       byte[] passPortImg, byte[] voterIdImg) {
-        this.id = id;
-        this.userId = userId;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.email = email;
-        this.mobile = mobile;
-        this.altMobile = altMobile;
-        this.gender = gender;
-        this.dob = dob;
-        this.address = address;
-        this.pincode = pincode;
-        this.branch = branch;
-        this.createdAt = createdAt;
-        this.role = role;
-        this.panCard = panCard;
-        this.aadharCard = aadharCard;
-        this.passPortImg = passPortImg;
-        this.voterIdImg = voterIdImg;
-    }
-
-
+//    public void setLoanAccounts(List<LoanAccountsEntity> loanAccounts) {
+//        this.loanAccounts = loanAccounts;
+//    }
 }
 

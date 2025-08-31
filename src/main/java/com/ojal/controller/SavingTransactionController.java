@@ -21,7 +21,7 @@ public class SavingTransactionController {
         this.savingTransactionService = transactionService;
     }
 
-    @PostMapping("/{accountNumber}")
+    @PostMapping("/create-transaction/{accountNumber}")
     public ResponseEntity<SavingTransactionEntity> createTransaction(
             @PathVariable String accountNumber,
             @RequestBody SavingTransactionDto request) {
@@ -30,7 +30,7 @@ public class SavingTransactionController {
                 HttpStatus.CREATED);
     }
 
-    @GetMapping("/{accountNumber}")
+    @GetMapping("/get-user-transactions/{accountNumber}")
     public ResponseEntity<List<SavingTransactionEntity>> getTransactions(@PathVariable String accountNumber) {
         return ResponseEntity.ok(savingTransactionService.findByAccountNumber(accountNumber));
     }

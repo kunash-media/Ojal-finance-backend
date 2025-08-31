@@ -49,7 +49,8 @@ public class UsersServiceImpl implements UsersService {
             MultipartFile panCard,
             MultipartFile aadharCard,
             MultipartFile passPortImg,
-            MultipartFile voterIdImg) throws IOException {
+            MultipartFile voterIdImg,
+            MultipartFile userSignatureImg) throws IOException {
 
         // Check if email already exists
         if (usersRepository.existsByEmail(userData.getEmail())) {
@@ -109,6 +110,10 @@ public class UsersServiceImpl implements UsersService {
             user.setVoterIdImg(voterIdImg.getBytes());
         }
 
+        if (userSignatureImg != null && !userSignatureImg.isEmpty()) {
+            user.setUserSignatureImg(userSignatureImg.getBytes());
+        }
+
         // Save user to database
         return usersRepository.save(user);
     }
@@ -127,7 +132,7 @@ public class UsersServiceImpl implements UsersService {
         documentStatus.put("aadharCard", user.getAadharCard() != null);
         documentStatus.put("passportImg", user.getPassPortImg() != null);
         documentStatus.put("voterIdImg", user.getVoterIdImg() != null);
-
+        documentStatus.put("userSignatureImg", user.getUserSignatureImg() != null);
         return documentStatus;
     }
 
@@ -341,6 +346,7 @@ public class UsersServiceImpl implements UsersService {
         documentStatus.put("aadharCard", user.getAadharCard() != null);
         documentStatus.put("passportImg", user.getPassPortImg() != null);
         documentStatus.put("voterIdImg", user.getVoterIdImg() != null);
+        documentStatus.put("userSignatureImg", user.getUserSignatureImg() != null);
         dto.setDocumentStatus(documentStatus);
 
         return dto;

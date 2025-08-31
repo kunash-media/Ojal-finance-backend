@@ -12,7 +12,7 @@ public class UserAccountsResponse {
     private List<SavingAccountsEntity> savingAccounts;
     private List<RdAccountsEntity> rdAccounts;
     private List<FdAccountsEntity> fdAccounts;
-    private List<LoanAccountsEntity> loanAccounts;
+//    private List<LoanAccountsEntity> loanAccounts;
 
     // Constructor to build from user entity
     public UserAccountsResponse(UsersEntity user) {
@@ -22,7 +22,7 @@ public class UserAccountsResponse {
         this.savingAccounts = user.getSavingAccounts();
         this.rdAccounts = user.getRdAccounts();
         this.fdAccounts = user.getFdAccounts();
-        this.loanAccounts = user.getLoanAccounts();
+//        this.loanAccounts = user.getLoanAccounts();
     }
 
     // Getters and setters
@@ -74,12 +74,11 @@ public class UserAccountsResponse {
         this.fdAccounts = fdAccounts;
     }
 
-    public List<LoanAccountsEntity> getLoanAccounts() {
-        return loanAccounts;
-    }
-
-    public void setLoanAccounts(List<LoanAccountsEntity> loanAccounts) {
-        this.loanAccounts = loanAccounts;
-    }
+//    public List<LoanAccountsEntity> getLoanAccounts() {
+//        return loanAccounts;
+//    }
+//    public void setLoanAccounts(List<LoanAccountsEntity> loanAccounts) {
+//        this.loanAccounts = loanAccounts;
+//    }
 }
 

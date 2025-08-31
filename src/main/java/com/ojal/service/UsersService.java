@@ -21,7 +21,8 @@ public interface UsersService {
             MultipartFile panCard,
             MultipartFile aadharCard,
             MultipartFile passportImg,
-            MultipartFile voterIdImg) throws IOException;
+            MultipartFile voterIdImg,
+            MultipartFile userSignatureImg) throws IOException;
 
     // Get document status for a user
     Map<String, Boolean> getDocumentsStatus(String userId);

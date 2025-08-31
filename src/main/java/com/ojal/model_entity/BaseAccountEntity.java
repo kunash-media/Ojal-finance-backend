@@ -82,4 +82,12 @@ public class BaseAccountEntity {
     public enum AccountStatus {
         ACTIVE, INACTIVE, CLOSED
     }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setLastUpdated(String lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
 }

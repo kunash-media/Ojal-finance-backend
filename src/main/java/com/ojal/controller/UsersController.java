@@ -44,14 +44,15 @@ public class UsersController {
             @RequestPart(value = "panCard", required = false) MultipartFile panCard,
             @RequestPart(value = "aadharCard", required = false) MultipartFile aadharCard,
             @RequestPart(value = "passPortImg", required = false) MultipartFile passPortImg,
-            @RequestPart(value = "voterIdImg", required = false) MultipartFile voterIdImg) throws BadRequestException {
+            @RequestPart(value = "voterIdImg", required = false) MultipartFile voterIdImg,
+            @RequestPart(value = "userSignatureImg", required = false) MultipartFile userSignatureImg) throws BadRequestException {
 
         logger.info("Registering new user with email: {} and documents", userData.getEmail());
 
         try {
             // Create user with documents
             UsersEntity user = userService.createUserWithDocuments(
-                    userData, panCard, aadharCard, passPortImg, voterIdImg
+                    userData, panCard, aadharCard, passPortImg, voterIdImg, userSignatureImg
             );
 
             // Prepare response with updated fields

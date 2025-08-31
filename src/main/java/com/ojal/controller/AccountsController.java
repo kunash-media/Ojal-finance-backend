@@ -49,13 +49,13 @@ public class AccountsController {
                 .body(new AccountResponse(account.getAccountNumber(), AccountType.FD_AC));
     }
 
-    @PostMapping("/{userId}/loan")
-    public ResponseEntity<AccountResponse> createLoanAccount(@PathVariable String userId, @RequestBody LoanAccountsDto request) {
-
-        LoanAccountsEntity account = loanAccountService.createAccount(userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AccountResponse(account.getAccountNumber(), AccountType.LOAN_AC));
-    }
+//    @PostMapping("/{userId}/loan")
+//    public ResponseEntity<AccountResponse> createLoanAccount(@PathVariable String userId, @RequestBody LoanAccountsDto request) {
+//
+//        LoanAccountsEntity account = loanAccountService.createAccount(userId, request);
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(new AccountResponse(account.getAccountNumber(), AccountType.LOAN_AC));
+//    }
 
     // --------------  Response class  ---------------------//
     public static class AccountResponse {

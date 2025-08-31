@@ -34,4 +34,16 @@ public interface SavingTransactionRepository extends JpaRepository<SavingTransac
      */
     @Query("SELECT st FROM SavingTransactionEntity st WHERE st.savingAccount.user.userId = :userId")
     List<SavingTransactionEntity> findByUserUserId(@Param("userId") String userId);
+
+
+    // Add this method to your SavingTransactionRepository interface
+    @Query(value = "SELECT st.id, st.created_at, st.daily_amount, st.pay_mode, st.utr_no, " +
+            "st.cash, st.cheque_number, st.note, st.balance_after " +
+            "FROM saving_transactions st " +
+            "INNER JOIN saving_accounts_table sa ON st.account_number = sa.account_number " +
+            "WHERE sa.account_number = :accountNumber " +
+            "ORDER BY st.created_at DESC",
+            nativeQuery = true)
+    List<Object[]> findTransactionRawDataByAccountNumber(@Param("accountNumber") String accountNumber);
+
 }
