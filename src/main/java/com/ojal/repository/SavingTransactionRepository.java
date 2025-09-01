@@ -11,9 +11,12 @@ import java.util.List;
 
 @Repository
 public interface SavingTransactionRepository extends JpaRepository<SavingTransactionEntity, Long> {
-    List<SavingTransactionEntity> findBySavingAccount_AccountNumberOrderByCreatedAtDesc(String accountNumber);
 
-    // ADD these new methods:
+   // List<SavingTransactionEntity> findBySavingAccount_AccountNumberOrderByCreatedAtDesc(String accountNumber);
+
+    @Query("SELECT t FROM SavingTransactionEntity t JOIN FETCH t.savingAccount WHERE t.savingAccount.accountNumber = :accountNumber ORDER BY t.createdAt DESC")
+    List<SavingTransactionEntity> findBySavingAccount_AccountNumberOrderByCreatedAtDesc(@Param("accountNumber") String accountNumber);
+
 
     /**
      * Delete all transactions for a specific account number
@@ -35,7 +38,6 @@ public interface SavingTransactionRepository extends JpaRepository<SavingTransac
     @Query("SELECT st FROM SavingTransactionEntity st WHERE st.savingAccount.user.userId = :userId")
     List<SavingTransactionEntity> findByUserUserId(@Param("userId") String userId);
 
-
     // Add this method to your SavingTransactionRepository interface
     @Query(value = "SELECT st.id, st.created_at, st.daily_amount, st.pay_mode, st.utr_no, " +
             "st.cash, st.cheque_number, st.note, st.balance_after " +
@@ -45,5 +47,4 @@ public interface SavingTransactionRepository extends JpaRepository<SavingTransac
             "ORDER BY st.created_at DESC",
             nativeQuery = true)
     List<Object[]> findTransactionRawDataByAccountNumber(@Param("accountNumber") String accountNumber);
-
 }

@@ -38,7 +38,7 @@ SavingAccountsServiceImpl implements SavingAccountsService {
 
     private final SavingAccountsRepository savingAccountsRepository;
     private final UsersRepository userRepository;
-    private final SavingTransactionRepository transactionRepository;
+    private final SavingTransactionRepository savingTransactionRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(SavingAccountsServiceImpl.class);
 
@@ -50,10 +50,10 @@ SavingAccountsServiceImpl implements SavingAccountsService {
     public SavingAccountsServiceImpl(
             SavingAccountsRepository savingAccountsRepository,
             UsersRepository userRepository,
-            SavingTransactionRepository transactionRepository) {
+            SavingTransactionRepository savingTransactionRepository) {
         this.savingAccountsRepository = savingAccountsRepository;
         this.userRepository = userRepository;
-        this.transactionRepository = transactionRepository;
+        this.savingTransactionRepository = savingTransactionRepository;
     }
 
     @Override
@@ -115,7 +115,7 @@ SavingAccountsServiceImpl implements SavingAccountsService {
     }
 
     @Override
-    @Transactional(readOnly = true) // ADD THIS ANNOTATION
+    @Transactional(readOnly = true)
     public SavingAccountDetailsDto getAccountWithTransactions(String accountNumber) {
         logger.info("Fetching account details with transactions for account: {}", accountNumber);
 
@@ -126,7 +126,7 @@ SavingAccountsServiceImpl implements SavingAccountsService {
                     account.getId(), account.getUser().getFirstName(), account.getBalance());
 
             // Get associated transactions - Same repository, should work now
-            List<SavingTransactionEntity> transactions = transactionRepository
+            List<SavingTransactionEntity> transactions = savingTransactionRepository
                     .findBySavingAccount_AccountNumberOrderByCreatedAtDesc(accountNumber);
             logger.debug("Retrieved {} transactions for account: {}", transactions.size(), accountNumber);
 
@@ -261,7 +261,7 @@ SavingAccountsServiceImpl implements SavingAccountsService {
         }
 
         // Additional check: Verify no pending transactions (optional)
-        List<SavingTransactionEntity> recentTransactions = transactionRepository
+        List<SavingTransactionEntity> recentTransactions = savingTransactionRepository
                 .findBySavingAccount_AccountNumberOrderByCreatedAtDesc(account.getAccountNumber());
 
         // If there are recent transactions, you might want to prevent deletion
@@ -275,7 +275,7 @@ SavingAccountsServiceImpl implements SavingAccountsService {
 
         // UPDATED DELETION LOGIC:
         // Step 1: Delete all transactions for this user's saving account first
-        transactionRepository.deleteByUserUserId(userId);
+        savingTransactionRepository.deleteByUserUserId(userId);
 
         // Step 2: Now delete the saving account
         int deletedCount = savingAccountsRepository.deleteByUser_UserId(userId);
@@ -308,7 +308,7 @@ SavingAccountsServiceImpl implements SavingAccountsService {
         }
 
         // Delete transactions first
-        transactionRepository.deleteByAccountNumber(accountNumber);
+        savingTransactionRepository.deleteByAccountNumber(accountNumber);
 
         // Delete the account
         savingAccountsRepository.delete(account);
@@ -375,5 +375,37 @@ SavingAccountsServiceImpl implements SavingAccountsService {
 
         // Save and return updated account
         return savingAccountsRepository.save(existingAccount);
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<SavingAccountDetailsDto> getAllAccounts() {
+        logger.info("Fetching all savings accounts");
+
+        List<SavingAccountsEntity> accounts = savingAccountsRepository.findAll();
+        logger.debug("Retrieved {} accounts", accounts.size());
+
+        return accounts.stream()
+                .map(this::mapToDetailsDto)
+                .collect(Collectors.toList());
+    }
+
+    private SavingAccountDetailsDto mapToDetailsDto(SavingAccountsEntity account) {
+        logger.debug("Mapping account to DTO - ID: {}, AccountNumber: {}",
+                account.getId(), account.getAccountNumber());
+
+        SavingAccountDetailsDto dto = new SavingAccountDetailsDto();
+        dto.setId(account.getId());
+        dto.setName(account.getUser().getFirstName());
+        dto.setAccountNumber(account.getAccountNumber());
+        dto.setCreatedAt(account.getCreatedAt());
+        dto.setAccountType(AccountType.SAVING_AC.name());
+        dto.setCurrentBalance(account.getBalance());
+        dto.setInterestRate(account.getInterestRate());
+        dto.setStatus(account.getStatus().name());
+
+        logger.debug("Mapped account DTO - Type: {}, Status: {}, Balance: {}",
+                dto.getAccountType(), dto.getStatus(), dto.getCurrentBalance());
+        return dto;
     }
 }

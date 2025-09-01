@@ -17,7 +17,6 @@ import java.util.Map;
 
 import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/saving")
 public class SavingAccountsController {
@@ -130,6 +129,11 @@ public class SavingAccountsController {
             errorResponse.put("message", "An unexpected error occurred");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
+    }
+
+    @GetMapping("/get-all-savings-users")
+    public ResponseEntity<List<SavingAccountDetailsDto>> getAllAccounts() {
+        return ResponseEntity.ok(savingAccountsService.getAllAccounts());
     }
 
     /**

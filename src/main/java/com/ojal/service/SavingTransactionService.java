@@ -9,6 +9,5 @@ import java.util.List;
 public interface SavingTransactionService {
 
     SavingTransactionEntity createTransaction(String accountNumber, SavingTransactionDto transactionDto);
-
     List<SavingTransactionEntity> findByAccountNumber(String accountNumber);
 }

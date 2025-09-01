@@ -53,4 +53,6 @@ public interface SavingAccountsService {
      * @return success message
      */
     String deleteAccountWithTransactions(String accountNumber);
+
+    public List<SavingAccountDetailsDto> getAllAccounts();
 }

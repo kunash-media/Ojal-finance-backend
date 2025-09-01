@@ -20,7 +20,7 @@ public class SavingTransactionEntity {
     @JsonBackReference
     private SavingAccountsEntity savingAccount;
 
-    @Column(nullable = false)
+    @Column(name = "created_at",nullable = false)
     private String createdAt;
 
     @Column(name="daily_amount", nullable = false)

@@ -14,7 +14,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/fd-transactions")
-@CrossOrigin(origins = "*")
 public class FdTransactionController {
 
     private final FdTransactionService fdTransactionService;
