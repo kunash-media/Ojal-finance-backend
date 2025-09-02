@@ -28,7 +28,7 @@ public class RdAccountsController {
         this.rdAccountService = rdAccountService;
     }
 
-    @PostMapping("/{userId}")
+    @PostMapping("/create-rd/{userId}")
     public ResponseEntity<RdUserResponse> createRdAccount(
             @PathVariable String userId,
             @RequestBody RdAccountsDto request) {
@@ -50,7 +50,7 @@ public class RdAccountsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{accountNumber}")
+    @GetMapping("/get-rd-by-accNum/{accountNumber}")
     public ResponseEntity<RdAccountDetailsResponse> getRdAccountByNumber(
             @PathVariable String accountNumber) {
 
@@ -69,7 +69,7 @@ public class RdAccountsController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/get-all-rds-by-userId/{userId}")
     public ResponseEntity<List<RdAccountDetailsResponse>> getAllRdAccountsByUserId(
             @PathVariable String userId) {
 
@@ -90,6 +90,7 @@ public class RdAccountsController {
         return ResponseEntity.ok(response);
     }
 
+    // ------------ process monthly deposit with penalties -----------//
     @PutMapping("/{accountNumber}/deposit")
     public ResponseEntity<RdAccountDetailsResponse> processMonthlyDeposit(
             @PathVariable String accountNumber) {

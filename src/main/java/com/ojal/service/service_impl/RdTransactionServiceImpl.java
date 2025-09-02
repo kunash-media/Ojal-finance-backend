@@ -34,10 +34,10 @@ public class RdTransactionServiceImpl implements RdTransactionService {
 
     @Override
     @Transactional
-    public RdTransactionEntity createTransaction(RdTransactionDTO transactionDTO) {
+    public RdTransactionEntity createTransaction(String accountNumber,RdTransactionDTO transactionDTO) {
         // Find the RD account by account number
-        RdAccountsEntity rdAccount = rdAccountsRepository.findByAccountNumber(transactionDTO.getAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("RD Account", "accountNumber", transactionDTO.getAccountNumber()));
+        RdAccountsEntity rdAccount = rdAccountsRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("RD Account", "accountNumber", accountNumber));
 
         // Prepare timestamp
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);

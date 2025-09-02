@@ -8,7 +8,7 @@ import java.util.List;
 public interface RdTransactionService {
 
     // Create a new transaction
-    RdTransactionEntity createTransaction(RdTransactionDTO transactionDTO);
+    RdTransactionEntity createTransaction(String accountNumber, RdTransactionDTO transactionDTO);
 
     // Get all transactions for an RD account
     List<RdTransactionEntity> getTransactionsByAccountNumber(String accountNumber);

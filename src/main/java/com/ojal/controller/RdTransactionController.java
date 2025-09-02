@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/rd/transaction")
+@RequestMapping("/api/rd/transactions")
 public class RdTransactionController {
 
     @Autowired
@@ -26,12 +26,12 @@ public class RdTransactionController {
     private RdAccountsRepository rdAccountsRepository;
 
     // Create a new transaction for an RD account
-    @PostMapping("/{accountNumber}")
+    @PostMapping("/rd-deposit/{accountNumber}")
     public ResponseEntity<?> createTransaction(@PathVariable String accountNumber, @RequestBody RdTransactionDTO transactionDTO) {
         try {
             // Set the account number from path variable
-            transactionDTO.setAccountNumber(accountNumber);
-            RdTransactionEntity transaction = transactionService.createTransaction(transactionDTO);
+            // transactionDTO.setAccountNumber(accountNumber);
+            RdTransactionEntity transaction = transactionService.createTransaction(accountNumber,transactionDTO);
             return new ResponseEntity<>(transaction, HttpStatus.CREATED);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -41,7 +41,7 @@ public class RdTransactionController {
     }
 
     // Get all transactions for an RD account
-    @GetMapping("/{accountNumber}")
+    @GetMapping("/get-rd-transactions/{accountNumber}")
     public ResponseEntity<?> getTransactionsByAccountNumber(@PathVariable String accountNumber) {
         try {
             // Get the RD account
@@ -92,7 +92,7 @@ public class RdTransactionController {
     }
 
     // Get transaction by ID
-    @GetMapping("/details/{id}")
+    @GetMapping("/get-transaction-by-id/{id}")
     public ResponseEntity<?> getTransactionById(@PathVariable Long id) {
         try {
             RdTransactionEntity transaction = transactionService.getTransactionById(id);
@@ -105,7 +105,7 @@ public class RdTransactionController {
     }
 
     // Update transaction status
-    @PutMapping("/{id}/status")
+    @PutMapping("/update-transaction-status/{id}/status")
     public ResponseEntity<?> updateTransactionStatus(
             @PathVariable Long id,
             @RequestParam RdTransactionEntity.TransactionStatus status) {
@@ -120,7 +120,7 @@ public class RdTransactionController {
     }
 
     // Delete transaction
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete-transaction/{id}")
     public ResponseEntity<?> deleteTransaction(@PathVariable Long id) {
         try {
             transactionService.deleteTransaction(id);
