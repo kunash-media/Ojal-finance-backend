@@ -2,6 +2,7 @@ package com.ojal.service.service_impl;
 
 import com.ojal.model_entity.BaseAccountEntity;
 import com.ojal.model_entity.RdAccountsEntity;
+import com.ojal.model_entity.dto.request.RdAccountUpdateDto;
 import com.ojal.model_entity.dto.request.RdAccountsDto;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.RdAccountsRepository;
@@ -44,6 +45,7 @@ public class RdAccountsServiceImpl implements RdAccountsService {
         rdAccount.setTenureMonths(request.getTenureMonths());
         rdAccount.setMaturityDate(LocalDate.now().plusMonths(request.getTenureMonths()));
 
+
         // 3. Calculate Maturity Amount (same as your original logic)
         BigDecimal monthlyRate = request.getInterestRate().divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
 
@@ -51,7 +53,12 @@ public class RdAccountsServiceImpl implements RdAccountsService {
         BigDecimal interest = request.getDepositAmount()
                 .multiply(monthlyRate)
                 .multiply(BigDecimal.valueOf(request.getTenureMonths() * (request.getTenureMonths() + 1) / 2));
-        rdAccount.setMaturityAmount(totalDeposits.add(interest));
+
+        //rdAccount.setMaturityAmount(totalDeposits.add(interest));
+
+        // Round final maturity amount to 2 decimal places
+         BigDecimal maturityAmount = totalDeposits.add(interest).setScale(2, RoundingMode.HALF_UP);
+         rdAccount.setMaturityAmount(maturityAmount);
 
         // 4. Associate RD Account with User
         user.addRdAccount(rdAccount);
@@ -73,6 +80,77 @@ public class RdAccountsServiceImpl implements RdAccountsService {
         UsersEntity user = usersRepository.findByUserId(userId);
         return rdAccountsRepository.findByUser(user);
     }
+
+
+    // ------------ NEW PATCH METHOD IMPLEMENTATION -----------//
+    @Override
+    @Transactional
+    public RdAccountsEntity updateRdAccount(String accountNumber, RdAccountUpdateDto updateRequest) {
+        RdAccountsEntity account = findByAccountNumber(accountNumber);
+
+        // Update only provided fields (null-safe updates)
+        if (updateRequest.getDepositAmount() != null) {
+            account.setDepositAmount(updateRequest.getDepositAmount());
+        }
+
+        if (updateRequest.getInterestRate() != null) {
+            account.setInterestRate(updateRequest.getInterestRate());
+        }
+
+        if (updateRequest.getTenureMonths() != null) {
+            account.setTenureMonths(updateRequest.getTenureMonths());
+            // Recalculate maturity date based on creation date
+            account.setMaturityDate(LocalDate.now().plusMonths(updateRequest.getTenureMonths()));
+        }
+
+        // Recalculate maturity amount if any relevant field was updated
+        if (updateRequest.getDepositAmount() != null ||
+                updateRequest.getInterestRate() != null ||
+                updateRequest.getTenureMonths() != null) {
+
+            recalculateMaturityAmount(account);
+        }
+
+        return rdAccountsRepository.save(account);
+    }
+
+    // Helper method to recalculate maturity amount
+    private void recalculateMaturityAmount(RdAccountsEntity account) {
+        BigDecimal monthlyRate = account.getInterestRate()
+                .divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
+
+        BigDecimal totalDeposits = account.getDepositAmount()
+                .multiply(BigDecimal.valueOf(account.getTenureMonths()));
+
+
+        BigDecimal interest = account.getDepositAmount()
+                .multiply(monthlyRate)
+                .multiply(BigDecimal.valueOf(account.getTenureMonths() * (account.getTenureMonths() + 1) / 2));
+
+        // account.setMaturityAmount(totalDeposits.add(interest));
+        // Round final maturity amount to 2 decimal places
+        BigDecimal maturityAmount = totalDeposits.add(interest).setScale(2, RoundingMode.HALF_UP);
+        account.setMaturityAmount(maturityAmount);
+    }
+
+    // ------------ DELETE METHODS IMPLEMENTATION -----------//
+    @Override
+    @Transactional
+    public void deleteByAccountNumber(String accountNumber) {
+        RdAccountsEntity account = findByAccountNumber(accountNumber);
+        rdAccountsRepository.delete(account);
+    }
+
+    @Override
+    @Transactional
+    public int deleteAllByUserId(String userId) {
+        UsersEntity user = usersRepository.findByUserId(userId);
+        List<RdAccountsEntity> rdAccounts = rdAccountsRepository.findByUser(user);
+        int deletedCount = rdAccounts.size();
+        rdAccountsRepository.deleteAll(rdAccounts);
+        return deletedCount;
+    }
+
 
     @Override
     @Transactional

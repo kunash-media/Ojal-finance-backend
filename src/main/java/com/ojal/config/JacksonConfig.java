@@ -1,4 +1,4 @@
-package com.oy.oy_jewels.config;
+package com.ojal.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

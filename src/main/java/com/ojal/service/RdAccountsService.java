@@ -2,6 +2,7 @@ package com.ojal.service;
 
 import com.ojal.model_entity.RdAccountsEntity;
 import com.ojal.model_entity.UsersEntity;
+import com.ojal.model_entity.dto.request.RdAccountUpdateDto;
 import com.ojal.model_entity.dto.request.RdAccountsDto;
 
 import java.util.List;
@@ -16,4 +17,13 @@ public interface RdAccountsService {
 
     RdAccountsEntity processMonthlyDeposit(String accountNumber);
     // Additional RD account management methods
+
+    // NEW PATCH METHOD
+    RdAccountsEntity updateRdAccount(String accountNumber, RdAccountUpdateDto updateRequest);
+
+
+    // NEW DELETE METHODS
+    void deleteByAccountNumber(String accountNumber);
+
+    int deleteAllByUserId(String userId);
 }
