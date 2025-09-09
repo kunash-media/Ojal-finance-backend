@@ -1,9 +1,11 @@
 package com.ojal.service.service_impl;
 
 import com.ojal.model_entity.FdAccountsEntity;
+import com.ojal.model_entity.dto.request.FdAccountUpdateDto;
 import com.ojal.model_entity.dto.request.FdAccountsDto;
 import com.ojal.model_entity.UsersEntity;
 import com.ojal.repository.FdAccountsRepository;
+import com.ojal.repository.FdTransactionRepository;
 import com.ojal.repository.UsersRepository;
 import com.ojal.service.FdAccountsService;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,14 +23,17 @@ public class FdAccountsServiceImpl implements FdAccountsService {
 
     private final UsersRepository usersRepository;
     private final FdAccountsRepository fdAccountsRepository;
+    private final FdTransactionRepository fdTransactionRepository;
 
     @Autowired
     public FdAccountsServiceImpl(
             UsersRepository usersRepository,
-            FdAccountsRepository fdAccountsRepository
+            FdAccountsRepository fdAccountsRepository,
+            FdTransactionRepository fdTransactionRepository
     ) {
         this.usersRepository = usersRepository;
         this.fdAccountsRepository = fdAccountsRepository;
+        this.fdTransactionRepository = fdTransactionRepository;
     }
 
     @Override
@@ -52,8 +57,8 @@ public class FdAccountsServiceImpl implements FdAccountsService {
         // Calculate simple interest
         BigDecimal interest = principal.multiply(rateDecimal).multiply(timeInYears);
 
-        // Calculate maturity amount
-        BigDecimal maturityAmount = principal.add(interest);
+        // Calculate maturity amount with proper decimal scaling
+        BigDecimal maturityAmount = principal.add(interest).setScale(2, RoundingMode.HALF_UP);
 
         fdAccount.setMaturityAmount(maturityAmount);
 
@@ -102,7 +107,7 @@ public class FdAccountsServiceImpl implements FdAccountsService {
         BigDecimal timeInYears = BigDecimal.valueOf(request.getTenureMonths()).divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
 
         BigDecimal interest = principal.multiply(rateDecimal).multiply(timeInYears);
-        BigDecimal maturityAmount = principal.add(interest);
+        BigDecimal maturityAmount = principal.add(interest).setScale(2, RoundingMode.HALF_UP);
 
         fdAccount.setMaturityAmount(maturityAmount);
 
@@ -114,5 +119,67 @@ public class FdAccountsServiceImpl implements FdAccountsService {
     public void deleteAccount(String accountNumber) {
         FdAccountsEntity fdAccount = findByAccountNumber(accountNumber);
         fdAccountsRepository.delete(fdAccount);
+    }
+
+    // ------------ NEW METHODS MATCHING RD PATTERN -----------//
+    @Override
+    @Transactional
+    public FdAccountsEntity updateFdAccountPartial(String accountNumber, FdAccountUpdateDto updateRequest) {
+        FdAccountsEntity account = findByAccountNumber(accountNumber);
+
+        // Update only provided fields (null-safe updates)
+        if (updateRequest.getPrincipalAmount() != null) {
+            account.setPrincipalAmount(updateRequest.getPrincipalAmount());
+        }
+
+        if (updateRequest.getInterestRate() != null) {
+            account.setInterestRate(updateRequest.getInterestRate());
+        }
+
+        if (updateRequest.getTenureMonths() != null) {
+            account.setTenureMonths(updateRequest.getTenureMonths());
+            // Recalculate maturity date
+            account.setMaturityDate(LocalDate.now().plusMonths(updateRequest.getTenureMonths()));
+        }
+
+        // Recalculate maturity amount if any relevant field was updated
+        if (updateRequest.getPrincipalAmount() != null ||
+                updateRequest.getInterestRate() != null ||
+                updateRequest.getTenureMonths() != null) {
+
+            recalculateMaturityAmount(account);
+        }
+
+        return fdAccountsRepository.save(account);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByAccountNumber(String accountNumber) {
+        FdAccountsEntity account = findByAccountNumber(accountNumber);
+        fdAccountsRepository.delete(account);
+    }
+
+
+    @Override
+    @Transactional
+    public int deleteAllByUserId(String userId) {
+        UsersEntity user = usersRepository.findByUserId(userId);
+        List<FdAccountsEntity> fdAccounts = fdAccountsRepository.findByUser(user);
+        int deletedCount = fdAccounts.size();
+        fdAccountsRepository.deleteAll(fdAccounts);
+        return deletedCount;
+    }
+
+    // Helper method to recalculate maturity amount with proper decimal scaling
+    private void recalculateMaturityAmount(FdAccountsEntity account) {
+        BigDecimal principal = account.getPrincipalAmount();
+        BigDecimal rateDecimal = account.getInterestRate().divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+        BigDecimal timeInYears = BigDecimal.valueOf(account.getTenureMonths()).divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+
+        BigDecimal interest = principal.multiply(rateDecimal).multiply(timeInYears);
+        BigDecimal maturityAmount = principal.add(interest).setScale(2, RoundingMode.HALF_UP);
+
+        account.setMaturityAmount(maturityAmount);
     }
 }

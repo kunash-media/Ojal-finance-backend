@@ -20,7 +20,7 @@ public class FdAccountsEntity extends BaseAccountEntity {
     @JsonBackReference
     private UsersEntity user;
 
-    @OneToMany(mappedBy = "fdAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "fdAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
     @JsonIgnore
     private List<FdTransactionEntity> fdTransactions = new ArrayList<>();

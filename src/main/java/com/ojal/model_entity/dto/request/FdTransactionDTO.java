@@ -5,6 +5,7 @@ import com.ojal.model_entity.FdTransactionEntity;
 import java.math.BigDecimal;
 
 public class FdTransactionDTO {
+
     private Long id;
     private String accountNumber;
     private BigDecimal amount;
