@@ -3,7 +3,6 @@ package com.ojal.controller;
 import com.ojal.enum_accounts.AccountType;
 import com.ojal.model_entity.*;
 import com.ojal.model_entity.dto.request.FdAccountsDto;
-import com.ojal.model_entity.dto.request.LoanAccountsDto;
 import com.ojal.model_entity.dto.request.SavingAccountsDto;
 import com.ojal.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
