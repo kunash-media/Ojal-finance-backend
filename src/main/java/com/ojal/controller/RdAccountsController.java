@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -63,11 +65,17 @@ public class RdAccountsController {
                 account.getTenureMonths(),
                 account.getMaturityAmount(),
                 account.getMaturityDate(),
-                account.getStatus()
+                account.getStatus(),
+                account.getPayoutAmount(),
+                account.getInterestEarned(),
+                account.getPenaltyApplied(),
+                account.getWithdrawnDate(),
+                "RD account fetched successfully"
         );
 
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/get-all-rds-by-userId/{userId}")
     public ResponseEntity<List<RdAccountDetailsResponse>> getAllRdAccountsByUserId(
@@ -84,7 +92,12 @@ public class RdAccountsController {
                         account.getTenureMonths(),
                         account.getMaturityAmount(),
                         account.getMaturityDate(),
-                        account.getStatus()
+                        account.getStatus(),
+                        account.getPayoutAmount(),
+                        account.getInterestEarned(),
+                        account.getPenaltyApplied(),
+                        account.getWithdrawnDate(),
+                        "RD account fetched successfully"
                 ))
                 .collect(Collectors.toList());
 
@@ -106,7 +119,12 @@ public class RdAccountsController {
                 account.getTenureMonths(),
                 account.getMaturityAmount(),
                 account.getMaturityDate(),
-                account.getStatus()
+                account.getStatus(),
+                account.getPayoutAmount(),
+                account.getInterestEarned(),
+                account.getPenaltyApplied(),
+                account.getWithdrawnDate(),
+                "RD account fetched successfully"
         );
 
         return ResponseEntity.ok(response);
@@ -128,7 +146,12 @@ public class RdAccountsController {
                 account.getTenureMonths(),
                 account.getMaturityAmount(),
                 account.getMaturityDate(),
-                account.getStatus()
+                account.getStatus(),
+                account.getPayoutAmount(),
+                account.getInterestEarned(),
+                account.getPenaltyApplied(),
+                account.getWithdrawnDate(),
+                "RD account fetched successfully"
         );
 
         return ResponseEntity.ok(response);
@@ -150,6 +173,25 @@ public class RdAccountsController {
         int deletedCount = rdAccountService.deleteAllByUserId(userId);
         return ResponseEntity.ok("Successfully deleted " + deletedCount + " RD accounts for user: " + userId);
     }
+
+    @PostMapping("/withdraw/{accountNumber}")
+    public ResponseEntity<Map<String, Object>> withdrawRd(@PathVariable String accountNumber) {
+        RdAccountsEntity account = rdAccountService.withdrawRdAccount(accountNumber);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("accountNumber", account.getAccountNumber());
+        response.put("depositAmount", account.getDepositAmount());
+        response.put("tenureMonths", account.getTenureMonths());
+        response.put("interestEarned", account.getInterestEarned());
+        response.put("penaltyApplied", account.getPenaltyApplied());
+        response.put("payoutAmount", account.getMaturityAmount());
+        response.put("withdrawnDate", account.getWithdrawnDate());
+        response.put("status", account.getStatus());
+        response.put("message", "RD withdrawn successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
 
 
 

@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -167,4 +170,91 @@ public class RdAccountsServiceImpl implements RdAccountsService {
 
         return rdAccountsRepository.save(account);
     }
+
+    @Override
+    @Transactional
+    public RdAccountsEntity withdrawRdAccount(String accountNumber) {
+        RdAccountsEntity account = findByAccountNumber(accountNumber);
+
+        LocalDate today = LocalDate.now();
+
+        // Parse createdAt string into LocalDate
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+        LocalDateTime createdDateTime = LocalDateTime.parse(account.getCreatedAt(), formatter);
+        LocalDate createdDate = createdDateTime.toLocalDate();
+
+        // Calculate how many months completed
+        int monthsCompleted = Math.min(
+                account.getTenureMonths(),
+                (int) ChronoUnit.MONTHS.between(createdDate, today)
+        );
+        if (monthsCompleted == 0) {
+            monthsCompleted = 1; // ensure at least 1 installment
+        }
+
+        BigDecimal actualDeposits = account.getDepositAmount()
+                .multiply(BigDecimal.valueOf(monthsCompleted));
+
+        BigDecimal totalPlannedDeposits = account.getDepositAmount()
+                .multiply(BigDecimal.valueOf(account.getTenureMonths()));
+
+        BigDecimal interest = BigDecimal.ZERO;
+        BigDecimal penalty = BigDecimal.ZERO;
+        BigDecimal payout;
+
+        // -------------------------
+        // Case 1: Withdraw before 3 months → only deposits
+        // -------------------------
+        if (monthsCompleted < 3) {
+            payout = actualDeposits;
+        }
+
+        // -------------------------
+        // Case 2: Premature withdrawal → deposits + penalized interest
+        // -------------------------
+        else if (today.isBefore(account.getMaturityDate())) {
+            BigDecimal monthlyRate = account.getInterestRate()
+                    .divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
+
+            BigDecimal normalInterest = account.getDepositAmount()
+                    .multiply(monthlyRate)
+                    .multiply(BigDecimal.valueOf(monthsCompleted * (monthsCompleted + 1) / 2));
+
+            BigDecimal effectiveRate = account.getInterestRate().subtract(BigDecimal.valueOf(3));
+            if (effectiveRate.compareTo(BigDecimal.ZERO) < 0) {
+                effectiveRate = BigDecimal.ZERO;
+            }
+
+            BigDecimal effectiveMonthlyRate = effectiveRate.divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
+            BigDecimal penalizedInterest = account.getDepositAmount()
+                    .multiply(effectiveMonthlyRate)
+                    .multiply(BigDecimal.valueOf(monthsCompleted * (monthsCompleted + 1) / 2));
+
+            interest = penalizedInterest;
+            penalty = normalInterest.subtract(penalizedInterest);
+
+            payout = actualDeposits.add(interest);
+        }
+
+        // -------------------------
+        // Case 3: On or after maturity → full maturity
+        // -------------------------
+        else {
+            payout = account.getMaturityAmount(); // use projected maturity from creation
+            interest = payout.subtract(totalPlannedDeposits);
+        }
+
+        // -------------------------
+        // Update entity only with withdrawal values
+        // -------------------------
+        account.setInterestEarned(interest.setScale(2, RoundingMode.HALF_UP));
+        account.setPenaltyApplied(penalty.setScale(2, RoundingMode.HALF_UP));
+        account.setPayoutAmount(payout.setScale(2, RoundingMode.HALF_UP)); // ✅ fixed: only actual withdrawn
+        account.setWithdrawnDate(today);
+        account.setStatus(BaseAccountEntity.AccountStatus.CLOSED);
+
+        return rdAccountsRepository.save(account);
+    }
+
+
 }

@@ -26,7 +26,6 @@ public class FdTransactionController {
         this.fdAccountsService = fdAccountsService;
     }
 
-
     // Controller Method
     @PostMapping("create/{accountNumber}")
     public ResponseEntity<?> createTransaction(@PathVariable String accountNumber,
@@ -42,7 +41,6 @@ public class FdTransactionController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
 
     /**

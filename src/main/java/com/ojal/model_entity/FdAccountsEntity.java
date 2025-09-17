@@ -43,6 +43,19 @@ public class FdAccountsEntity extends BaseAccountEntity {
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
+
+    @Column(name = "withdrawn_date")
+    private LocalDate withdrawnDate;
+
+    @Column(name = "penalty_applied")
+    private BigDecimal penaltyApplied;
+
+    @Column(name = "payout_amount")
+    private BigDecimal payoutAmount;
+
+    @Column(name = "is_withdrawn")
+    private Boolean isWithdrawn = false;
+
     @PrePersist
     protected void onCreate() {
         super.onCreate();
@@ -59,6 +72,27 @@ public class FdAccountsEntity extends BaseAccountEntity {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+    public FdAccountsEntity(){}
+
+    public FdAccountsEntity(UsersEntity user, List<FdTransactionEntity> fdTransactions,
+                            BigDecimal principalAmount, BigDecimal interestRate, Integer tenureMonths,
+                            LocalDate maturityDate, BigDecimal maturityAmount, BigDecimal balance,
+                            LocalDate withdrawnDate, BigDecimal penaltyApplied, BigDecimal payoutAmount,
+                            Boolean isWithdrawn) {
+        this.user = user;
+        this.fdTransactions = fdTransactions;
+        this.principalAmount = principalAmount;
+        this.interestRate = interestRate;
+        this.tenureMonths = tenureMonths;
+        this.maturityDate = maturityDate;
+        this.maturityAmount = maturityAmount;
+        this.balance = balance;
+        this.withdrawnDate = withdrawnDate;
+        this.penaltyApplied = penaltyApplied;
+        this.payoutAmount = payoutAmount;
+        this.isWithdrawn = isWithdrawn;
     }
 
     // Getters and setters
@@ -116,6 +150,39 @@ public class FdAccountsEntity extends BaseAccountEntity {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public LocalDate getWithdrawnDate() {
+        return withdrawnDate;
+    }
+
+    public void setWithdrawnDate(LocalDate withdrawnDate) {
+        this.withdrawnDate = withdrawnDate;
+    }
+
+    public BigDecimal getPenaltyApplied() {
+        return penaltyApplied;
+    }
+
+    public void setPenaltyApplied(BigDecimal penaltyApplied) {
+        this.penaltyApplied = penaltyApplied;
+    }
+
+    public BigDecimal getPayoutAmount() {
+        return payoutAmount;
+    }
+
+    public void setPayoutAmount(BigDecimal payoutAmount) {
+        this.payoutAmount = payoutAmount;
+    }
+
+
+    public Boolean getIsWithdrawn() {
+        return isWithdrawn;
+    }
+
+    public void setIsWithdrawn(Boolean withdrawn) {
+        isWithdrawn = withdrawn;
     }
 
     public List<FdTransactionEntity> getFdTransactions() {

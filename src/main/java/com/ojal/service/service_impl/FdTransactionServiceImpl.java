@@ -7,6 +7,8 @@ import com.ojal.model_entity.dto.request.FdTransactionDTO;
 import com.ojal.repository.FdAccountsRepository;
 import com.ojal.repository.FdTransactionRepository;
 import com.ojal.service.FdTransactionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ import java.util.Optional;
 @Transactional
 public class FdTransactionServiceImpl implements FdTransactionService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FdTransactionServiceImpl.class);
+
     private final FdTransactionRepository fdTransactionRepository;
     private final FdAccountsRepository fdAccountsRepository;
 
@@ -26,263 +30,380 @@ public class FdTransactionServiceImpl implements FdTransactionService {
     public FdTransactionServiceImpl(FdTransactionRepository fdTransactionRepository, FdAccountsRepository fdAccountsRepository) {
         this.fdTransactionRepository = fdTransactionRepository;
         this.fdAccountsRepository = fdAccountsRepository;
+        logger.debug("Initialized FdTransactionServiceImpl");
     }
+
 
     @Override
     @Transactional
     public FdTransactionEntity createTransaction(FdTransactionDTO transactionDTO) {
-        // Find the FD account by account number
-        FdAccountsEntity fdAccount = fdAccountsRepository.findByAccountNumber(transactionDTO.getAccountNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("FD Account", "accountNumber", transactionDTO.getAccountNumber()));
+        logger.info("Starting createTransaction for accountNumber: {}, payMode: {}",
+                transactionDTO.getAccountNumber(), transactionDTO.getPayMode());
+        try {
+            // Find the FD account by account number
+            logger.debug("Fetching FD account for accountNumber: {}", transactionDTO.getAccountNumber());
+            FdAccountsEntity fdAccount = fdAccountsRepository.findByAccountNumber(transactionDTO.getAccountNumber())
+                    .orElseThrow(() -> {
+                        logger.error("FD Account not found for accountNumber: {}", transactionDTO.getAccountNumber());
+                        return new ResourceNotFoundException("FD Account", "accountNumber", transactionDTO.getAccountNumber());
+                    });
 
-        // Create and populate transaction entity
-        FdTransactionEntity transaction = new FdTransactionEntity();
+            // Log initial balance and transaction amount for debugging
+            logger.debug("Initial account balance: {}, Transaction amount: {}",
+                    fdAccount.getBalance(), transactionDTO.getAmount());
 
-        // Set basic transaction details
-        transaction.setFdAccount(fdAccount);
-        transaction.setAmount(transactionDTO.getAmount());
-        transaction.setPayMode(transactionDTO.getPayMode());
-        transaction.setNote(transactionDTO.getNote());
+            // Create and populate transaction entity
+            FdTransactionEntity transaction = new FdTransactionEntity();
+            logger.debug("Creating new transaction entity for accountNumber: {}", transactionDTO.getAccountNumber());
 
-        // Update account balance based on transaction
-        BigDecimal newBalance;
-        if (transactionDTO.getPayMode() != null &&
-                (transactionDTO.getPayMode().equalsIgnoreCase("WITHDRAWAL") ||
-                        transactionDTO.getPayMode().equalsIgnoreCase("DEBIT"))) {
-            // For withdrawal, subtract from balance
-            newBalance = fdAccount.getBalance().subtract(transactionDTO.getAmount());
-        } else {
-            // For deposit/credit, add to balance
-            newBalance = fdAccount.getBalance().add(transactionDTO.getAmount());
+            // Set basic transaction details
+            transaction.setFdAccount(fdAccount);
+            // Ensure amount is stored as positive in DB
+            BigDecimal transactionAmount = transactionDTO.getAmount().abs();
+            transaction.setAmount(transactionAmount);
+            transaction.setPayMode(transactionDTO.getPayMode());
+            transaction.setNote(transactionDTO.getNote());
+            transaction.setUtrNo(transactionDTO.getUtrNo());
+
+            // Update account balance based on transaction
+            BigDecimal newBalance;
+            boolean isWithdrawal = transactionDTO.getPayMode() != null &&
+                    (transactionDTO.getPayMode().equalsIgnoreCase("WITHDRAWAL") ||
+                            transactionDTO.getPayMode().equalsIgnoreCase("DEBIT"));
+
+            if (isWithdrawal) {
+                // For withdrawal, check if sufficient balance exists
+                logger.debug("Processing withdrawal: Current balance={}, Amount={}",
+                        fdAccount.getBalance(), transactionAmount);
+                if (fdAccount.getBalance().compareTo(transactionAmount) < 0) {
+                    logger.error("Insufficient balance for withdrawal. Current: {}, Required: {}",
+                            fdAccount.getBalance(), transactionAmount);
+                    throw new IllegalArgumentException("Insufficient balance for withdrawal. Current balance: " +
+                            fdAccount.getBalance() + ", Required: " + transactionAmount);
+                }
+                // For withdrawal, subtract from balance
+                newBalance = fdAccount.getBalance().subtract(transactionAmount);
+                logger.debug("Withdrawal transaction: New balance calculated as {}", newBalance);
+            } else {
+                // For deposit/credit, add to balance
+                newBalance = fdAccount.getBalance().add(transactionAmount);
+                logger.debug("Deposit transaction: New balance calculated as {}", newBalance);
+            }
+
+            // Update balance in account and set balance after transaction
+            fdAccount.setBalance(newBalance);
+            transaction.setBalanceAfter(newBalance);
+
+            // Set status or use default if not provided
+            transaction.setStatus(transactionDTO.getStatus() != null
+                    ? transactionDTO.getStatus()
+                    : FdTransactionEntity.TransactionStatus.SUCCESS);
+
+            // Validate transaction before saving
+            validateTransaction(transaction);
+            logger.debug("Transaction validated successfully");
+
+            // Save the updated account
+            logger.debug("Saving updated FD account with new balance: {}", newBalance);
+            fdAccountsRepository.save(fdAccount);
+
+            // Save and return the transaction
+            logger.debug("Saving transaction for accountNumber: {}", transactionDTO.getAccountNumber());
+            FdTransactionEntity savedTransaction = fdTransactionRepository.save(transaction);
+            logger.info("Successfully created transaction with ID: {}", savedTransaction.getId());
+            return savedTransaction;
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation error creating transaction for accountNumber: {}, payMode: {}",
+                    transactionDTO.getAccountNumber(), transactionDTO.getPayMode(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error creating transaction for accountNumber: {}, payMode: {}",
+                    transactionDTO.getAccountNumber(), transactionDTO.getPayMode(), e);
+            throw e;
         }
-
-        // Update balance in account and set balance after transaction
-        fdAccount.setBalance(newBalance);
-        transaction.setBalanceAfter(newBalance);
-
-        // Set status or use default if not provided
-        transaction.setStatus(transactionDTO.getStatus() != null
-                ? transactionDTO.getStatus()
-                : FdTransactionEntity.TransactionStatus.SUCCESS);
-
-        // Save the updated account
-        fdAccountsRepository.save(fdAccount);
-
-        // Save and return the transaction
-        return fdTransactionRepository.save(transaction);
     }
 
-    /**
-     * Get transaction by ID
-     * @param id Transaction ID
-     * @return Optional containing transaction if found
-     */
+
     @Override
     @Transactional(readOnly = true)
     public Optional<FdTransactionEntity> getTransactionById(Long id) {
-        return fdTransactionRepository.findById(id);
+        logger.info("Fetching transaction by ID: {}", id);
+        try {
+            Optional<FdTransactionEntity> transaction = fdTransactionRepository.findById(id);
+            if (transaction.isPresent()) {
+                logger.debug("Transaction found with ID: {}", id);
+            } else {
+                logger.warn("Transaction not found with ID: {}", id);
+            }
+            return transaction;
+        } catch (Exception e) {
+            logger.error("Error fetching transaction by ID: {}", id, e);
+            throw e;
+        }
     }
 
-    /**
-     * Get transaction by transaction ID
-     * @param transactionId Unique transaction identifier
-     * @return Optional containing transaction if found
-     */
     @Override
     @Transactional(readOnly = true)
     public Optional<FdTransactionEntity> getTransactionByTransactionId(String transactionId) {
-        return fdTransactionRepository.findByTransactionId(transactionId);
+        logger.info("Fetching transaction by transactionId: {}", transactionId);
+        try {
+            Optional<FdTransactionEntity> transaction = fdTransactionRepository.findByTransactionId(transactionId);
+            if (transaction.isPresent()) {
+                logger.debug("Transaction found with transactionId: {}", transactionId);
+            } else {
+                logger.warn("Transaction not found with transactionId: {}", transactionId);
+            }
+            return transaction;
+        } catch (Exception e) {
+            logger.error("Error fetching transaction by transactionId: {}", transactionId, e);
+            throw e;
+        }
     }
 
-    /**
-     * Get all transactions for a specific FD account
-     * @param fdAccount FD account entity
-     * @return List of transactions for the account ordered by latest first
-     */
     @Override
     @Transactional(readOnly = true)
     public List<FdTransactionEntity> getTransactionsByFdAccount(FdAccountsEntity fdAccount) {
-        return fdTransactionRepository.findByFdAccountOrderByCreatedAtDesc(fdAccount);
+        logger.info("Fetching transactions for FD account: {}", fdAccount.getId());
+        try {
+            List<FdTransactionEntity> transactions = fdTransactionRepository.findByFdAccountOrderByCreatedAtDesc(fdAccount);
+            logger.debug("Found {} transactions for FD account: {}", transactions.size(), fdAccount.getId());
+            return transactions;
+        } catch (Exception e) {
+            logger.error("Error fetching transactions for FD account: {}", fdAccount.getId(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Get all transactions for a specific FD account number
-     * @param accountNumber FD account number
-     * @return List of transactions for the account number
-     */
     @Override
     @Transactional(readOnly = true)
     public List<FdTransactionEntity> getTransactionsByAccountNumber(String accountNumber) {
-        return fdTransactionRepository.findByAccountNumber(accountNumber);
+        logger.info("Fetching transactions for accountNumber: {}", accountNumber);
+        try {
+            List<FdTransactionEntity> transactions = fdTransactionRepository.findByAccountNumber(accountNumber);
+            logger.debug("Found {} transactions for accountNumber: {}", transactions.size(), accountNumber);
+            return transactions;
+        } catch (Exception e) {
+            logger.error("Error fetching transactions for accountNumber: {}", accountNumber, e);
+            throw e;
+        }
     }
 
-    /**
-     * Get all transactions with specific status
-     * @param status Transaction status
-     * @return List of transactions with specified status
-     */
     @Override
     @Transactional(readOnly = true)
     public List<FdTransactionEntity> getTransactionsByStatus(FdTransactionEntity.TransactionStatus status) {
-        return fdTransactionRepository.findByStatus(status);
+        logger.info("Fetching transactions with status: {}", status);
+        try {
+            List<FdTransactionEntity> transactions = fdTransactionRepository.findByStatus(status);
+            logger.debug("Found {} transactions with status: {}", transactions.size(), status);
+            return transactions;
+        } catch (Exception e) {
+            logger.error("Error fetching transactions with status: {}", status, e);
+            throw e;
+        }
     }
 
-    /**
-     * Get all transactions with specific pay mode
-     * @param payMode Payment mode
-     * @return List of transactions with specified pay mode
-     */
     @Override
     @Transactional(readOnly = true)
     public List<FdTransactionEntity> getTransactionsByPayMode(FdTransactionEntity.PayMode payMode) {
-        return fdTransactionRepository.findByPayMode(payMode);
+        logger.info("Fetching transactions with payMode: {}", payMode);
+        try {
+            List<FdTransactionEntity> transactions = fdTransactionRepository.findByPayMode(payMode);
+            logger.debug("Found {} transactions with payMode: {}", transactions.size(), payMode);
+            return transactions;
+        } catch (Exception e) {
+            logger.error("Error fetching transactions with payMode: {}", payMode, e);
+            throw e;
+        }
     }
 
-    /**
-     * Get all transactions
-     * @return List of all transactions
-     */
     @Override
     @Transactional(readOnly = true)
     public List<FdTransactionEntity> getAllTransactions() {
-        return fdTransactionRepository.findAll();
+        logger.info("Fetching all transactions");
+        try {
+            List<FdTransactionEntity> transactions = fdTransactionRepository.findAll();
+            logger.debug("Found {} transactions in total", transactions.size());
+            return transactions;
+        } catch (Exception e) {
+            logger.error("Error fetching all transactions", e);
+            throw e;
+        }
     }
 
-    /**
-     * Update an existing transaction
-     * @param id Transaction ID to update
-     * @param updatedTransaction Updated transaction data
-     * @return Updated transaction entity
-     * @throws RuntimeException if transaction not found
-     */
     @Override
     public FdTransactionEntity updateTransaction(Long id, FdTransactionEntity updatedTransaction) {
-        Optional<FdTransactionEntity> existingTransaction = fdTransactionRepository.findById(id);
+        logger.info("Updating transaction with ID: {}", id);
+        try {
+            Optional<FdTransactionEntity> existingTransaction = fdTransactionRepository.findById(id);
 
-        if (existingTransaction.isPresent()) {
-            FdTransactionEntity transaction = existingTransaction.get();
+            if (existingTransaction.isPresent()) {
+                FdTransactionEntity transaction = existingTransaction.get();
 
-            // Update modifiable fields only
-            if (updatedTransaction.getAmount() != null) {
-                transaction.setAmount(updatedTransaction.getAmount());
-            }
-            if (updatedTransaction.getPayMode() != null) {
-                transaction.setPayMode(updatedTransaction.getPayMode());
-            }
-            if (updatedTransaction.getStatus() != null) {
-                transaction.setStatus(updatedTransaction.getStatus());
-            }
-            if (updatedTransaction.getNote() != null) {
-                transaction.setNote(updatedTransaction.getNote());
-            }
-            if (updatedTransaction.getBalanceAfter() != null) {
-                transaction.setBalanceAfter(updatedTransaction.getBalanceAfter());
-            }
+                // Update modifiable fields only
+                if (updatedTransaction.getAmount() != null) {
+                    transaction.setAmount(updatedTransaction.getAmount().abs());
+                    logger.debug("Updated amount to: {}", transaction.getAmount());
+                }
+                if (updatedTransaction.getPayMode() != null) {
+                    transaction.setPayMode(updatedTransaction.getPayMode());
+                    logger.debug("Updated payMode to: {}", transaction.getPayMode());
+                }
+                if (updatedTransaction.getStatus() != null) {
+                    transaction.setStatus(updatedTransaction.getStatus());
+                    logger.debug("Updated status to: {}", transaction.getStatus());
+                }
+                if (updatedTransaction.getNote() != null) {
+                    transaction.setNote(updatedTransaction.getNote());
+                    logger.debug("Updated note to: {}", transaction.getNote());
+                }
+                if (updatedTransaction.getBalanceAfter() != null) {
+                    transaction.setBalanceAfter(updatedTransaction.getBalanceAfter());
+                    logger.debug("Updated balanceAfter to: {}", transaction.getBalanceAfter());
+                }
 
-            return fdTransactionRepository.save(transaction);
-        } else {
-            throw new RuntimeException("Transaction not found with ID: " + id);
+                logger.debug("Saving updated transaction with ID: {}", id);
+                FdTransactionEntity savedTransaction = fdTransactionRepository.save(transaction);
+                logger.info("Successfully updated transaction with ID: {}", id);
+                return savedTransaction;
+            } else {
+                logger.error("Transaction not found with ID: {}", id);
+                throw new RuntimeException("Transaction not found with ID: " + id);
+            }
+        } catch (Exception e) {
+            logger.error("Error updating transaction with ID: {}", id, e);
+            throw e;
         }
     }
 
-    /**
-     * Update transaction status
-     * @param transactionId Unique transaction identifier
-     * @param status New transaction status
-     * @return Updated transaction entity
-     * @throws RuntimeException if transaction not found
-     */
     @Override
     public FdTransactionEntity updateTransactionStatus(String transactionId, FdTransactionEntity.TransactionStatus status) {
-        Optional<FdTransactionEntity> existingTransaction = fdTransactionRepository.findByTransactionId(transactionId);
+        logger.info("Updating transaction status for transactionId: {}", transactionId);
+        try {
+            Optional<FdTransactionEntity> existingTransaction = fdTransactionRepository.findByTransactionId(transactionId);
 
-        if (existingTransaction.isPresent()) {
-            FdTransactionEntity transaction = existingTransaction.get();
-            transaction.setStatus(status);
-            return fdTransactionRepository.save(transaction);
-        } else {
-            throw new RuntimeException("Transaction not found with Transaction ID: " + transactionId);
+            if (existingTransaction.isPresent()) {
+                FdTransactionEntity transaction = existingTransaction.get();
+                transaction.setStatus(status);
+                logger.debug("Updated status to: {} for transactionId: {}", status, transactionId);
+                FdTransactionEntity savedTransaction = fdTransactionRepository.save(transaction);
+                logger.info("Successfully updated transaction status for transactionId: {}", transactionId);
+                return savedTransaction;
+            } else {
+                logger.error("Transaction not found with transactionId: {}", transactionId);
+                throw new RuntimeException("Transaction not found with Transaction ID: " + transactionId);
+            }
+        } catch (Exception e) {
+            logger.error("Error updating transaction status for transactionId: {}", transactionId, e);
+            throw e;
         }
     }
 
-    /**
-     * Delete transaction by ID
-     * @param id Transaction ID to delete
-     * @throws RuntimeException if transaction not found
-     */
     @Override
     public void deleteTransaction(Long id) {
-        if (fdTransactionRepository.existsById(id)) {
-            fdTransactionRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Transaction not found with ID: " + id);
+        logger.info("Deleting transaction with ID: {}", id);
+        try {
+            if (fdTransactionRepository.existsById(id)) {
+                fdTransactionRepository.deleteById(id);
+                logger.debug("Successfully deleted transaction with ID: {}", id);
+            } else {
+                logger.error("Transaction not found with ID: {}", id);
+                throw new RuntimeException("Transaction not found with ID: " + id);
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting transaction with ID: {}", id, e);
+            throw e;
         }
     }
 
-    /**
-     * Delete transaction by transaction ID
-     * @param transactionId Unique transaction identifier
-     * @throws RuntimeException if transaction not found
-     */
     @Override
     public void deleteTransactionByTransactionId(String transactionId) {
-        Optional<FdTransactionEntity> transaction = fdTransactionRepository.findByTransactionId(transactionId);
+        logger.info("Deleting transaction with transactionId: {}", transactionId);
+        try {
+            Optional<FdTransactionEntity> transaction = fdTransactionRepository.findByTransactionId(transactionId);
 
-        if (transaction.isPresent()) {
-            fdTransactionRepository.delete(transaction.get());
-        } else {
-            throw new RuntimeException("Transaction not found with Transaction ID: " + transactionId);
+            if (transaction.isPresent()) {
+                fdTransactionRepository.delete(transaction.get());
+                logger.debug("Successfully deleted transaction with transactionId: {}", transactionId);
+            } else {
+                logger.error("Transaction not found with transactionId: {}", transactionId);
+                throw new RuntimeException("Transaction not found with Transaction ID: " + transactionId);
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting transaction with transactionId: {}", transactionId, e);
+            throw e;
         }
     }
 
-    /**
-     * Delete all transactions for a specific FD account
-     * @param fdAccount FD account entity
-     */
     @Override
     public void deleteTransactionsByFdAccount(FdAccountsEntity fdAccount) {
-        fdTransactionRepository.deleteByFdAccount(fdAccount);
+        logger.info("Deleting transactions for FD account: {}", fdAccount.getId());
+        try {
+            fdTransactionRepository.deleteByFdAccount(fdAccount);
+            logger.debug("Successfully deleted transactions for FD account: {}", fdAccount.getId());
+        } catch (Exception e) {
+            logger.error("Error deleting transactions for FD account: {}", fdAccount.getId(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Get transaction count for a specific FD account
-     * @param fdAccount FD account entity
-     * @return Total number of transactions
-     */
     @Override
     @Transactional(readOnly = true)
     public long getTransactionCountByFdAccount(FdAccountsEntity fdAccount) {
-        return fdTransactionRepository.countByFdAccount(fdAccount);
+        logger.info("Fetching transaction count for FD account: {}", fdAccount.getId());
+        try {
+            long count = fdTransactionRepository.countByFdAccount(fdAccount);
+            logger.debug("Transaction count for FD account {}: {}", fdAccount.getId(), count);
+            return count;
+        } catch (Exception e) {
+            logger.error("Error fetching transaction count for FD account: {}", fdAccount.getId(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Check if transaction exists by transaction ID
-     * @param transactionId Unique transaction identifier
-     * @return true if transaction exists, false otherwise
-     */
     @Override
     @Transactional(readOnly = true)
     public boolean existsByTransactionId(String transactionId) {
-        return fdTransactionRepository.existsByTransactionId(transactionId);
+        logger.info("Checking if transaction exists with transactionId: {}", transactionId);
+        try {
+            boolean exists = fdTransactionRepository.existsByTransactionId(transactionId);
+            logger.debug("Transaction exists with transactionId: {} - {}", transactionId, exists);
+            return exists;
+        } catch (Exception e) {
+            logger.error("Error checking transaction existence for transactionId: {}", transactionId, e);
+            throw e;
+        }
     }
 
-    /**
-     * Validate transaction data before processing
-     * @param transaction Transaction entity to validate
-     * @throws IllegalArgumentException if validation fails
-     */
     private void validateTransaction(FdTransactionEntity transaction) {
-        if (transaction.getFdAccount() == null) {
-            throw new IllegalArgumentException("FD Account cannot be null");
-        }
-        if (transaction.getAmount() == null || transaction.getAmount().signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
-        }
-        if (transaction.getPayMode() == null) {
-            throw new IllegalArgumentException("Pay mode cannot be null");
-        }
-        if (transaction.getBalanceAfter() == null || transaction.getBalanceAfter().signum() < 0) {
-            throw new IllegalArgumentException("Balance after cannot be negative");
+        logger.debug("Validating transaction for account: {}", transaction.getFdAccount().getId());
+        try {
+            if (transaction.getFdAccount() == null) {
+                logger.error("Validation failed: FD Account cannot be null");
+                throw new IllegalArgumentException("FD Account cannot be null");
+            }
+            if (transaction.getAmount() == null || transaction.getAmount().signum() <= 0) {
+                logger.error("Validation failed: Amount must be positive");
+                throw new IllegalArgumentException("Amount must be positive");
+            }
+            if (transaction.getPayMode() == null) {
+                logger.error("Validation failed: Pay mode cannot be null");
+                throw new IllegalArgumentException("Pay mode cannot be null");
+            }
+            if (transaction.getBalanceAfter() == null) {
+                logger.error("Validation failed: Balance after cannot be null");
+                throw new IllegalArgumentException("Balance after cannot be null");
+            }
+            boolean isWithdrawal = transaction.getPayMode() != null &&
+                    (transaction.getPayMode().equalsIgnoreCase("WITHDRAWAL") ||
+                            transaction.getPayMode().equalsIgnoreCase("DEBIT"));
+            if (isWithdrawal && transaction.getBalanceAfter().signum() < 0) {
+                logger.error("Validation failed: Balance after cannot be negative for withdrawal/debit");
+                throw new IllegalArgumentException("Balance after cannot be negative for withdrawal/debit");
+            }
+            logger.debug("Transaction validation successful");
+        } catch (Exception e) {
+            logger.error("Error during transaction validation", e);
+            throw e;
         }
     }
 }

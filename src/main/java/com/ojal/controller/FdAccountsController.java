@@ -3,13 +3,16 @@ package com.ojal.controller;
 import com.ojal.model_entity.FdAccountsEntity;
 import com.ojal.model_entity.dto.request.FdAccountUpdateDto;
 import com.ojal.model_entity.dto.request.FdAccountsDto;
+import com.ojal.model_entity.dto.request.WithdrawRequest;
 import com.ojal.model_entity.dto.response.FdAccountDetailsResponse;
+import com.ojal.model_entity.dto.response.WithdrawResponse;
 import com.ojal.service.FdAccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -143,4 +146,35 @@ public class FdAccountsController {
         int deletedCount = fdAccountsService.deleteAllByUserId(userId);
         return ResponseEntity.ok("Successfully deleted " + deletedCount + " FD accounts for user: " + userId);
     }
+
+
+    @PostMapping("/withdraw/{accountNumber}")
+    public ResponseEntity<WithdrawResponse> withdrawFd(
+            @PathVariable String accountNumber,
+            @RequestBody(required = false) WithdrawRequest request) {
+
+        FdAccountsEntity updated = fdAccountsService.withdrawFd(accountNumber, request);
+
+        // compute values for response from updated entity
+        WithdrawResponse resp = new WithdrawResponse();
+        resp.setAccountNumber(updated.getAccountNumber());
+        resp.setPrincipalAmount(updated.getPrincipalAmount());
+        resp.setPenaltyApplied(updated.getPenaltyApplied() == null ? BigDecimal.ZERO : updated.getPenaltyApplied());
+        resp.setPayoutAmount(updated.getPayoutAmount() == null ? BigDecimal.ZERO : updated.getPayoutAmount());
+        resp.setWithdrawnDate(updated.getWithdrawnDate());
+        resp.setStatus(updated.getStatus().name());
+        resp.setMessage(updated.getIsWithdrawn() ? "Withdrawn successfully" : "Withdraw attempted");
+
+        // calculate interest earned if you want also included separately
+        BigDecimal interestEarned = resp.getPayoutAmount().subtract(resp.getPrincipalAmount()).add(resp.getPenaltyApplied().negate());
+        // but interestEarned may be null if payout is zero; safe-guard:
+        resp.setInterestEarned(
+                resp.getPayoutAmount() != null && resp.getPrincipalAmount() != null
+                        ? resp.getPayoutAmount().subtract(resp.getPrincipalAmount()).add(resp.getPenaltyApplied().negate())
+                        : BigDecimal.ZERO
+        );
+
+        return ResponseEntity.ok(resp);
+    }
+
 }

@@ -1,9 +1,12 @@
 package com.ojal.service.service_impl;
 
+import com.ojal.model_entity.BaseAccountEntity;
 import com.ojal.model_entity.FdAccountsEntity;
+import com.ojal.model_entity.FdTransactionEntity;
 import com.ojal.model_entity.dto.request.FdAccountUpdateDto;
 import com.ojal.model_entity.dto.request.FdAccountsDto;
 import com.ojal.model_entity.UsersEntity;
+import com.ojal.model_entity.dto.request.WithdrawRequest;
 import com.ojal.repository.FdAccountsRepository;
 import com.ojal.repository.FdTransactionRepository;
 import com.ojal.repository.UsersRepository;
@@ -16,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -182,4 +188,97 @@ public class FdAccountsServiceImpl implements FdAccountsService {
 
         account.setMaturityAmount(maturityAmount);
     }
+
+    @Override
+    @Transactional
+    public FdAccountsEntity withdrawFd(String accountNumber, WithdrawRequest request) {
+        FdAccountsEntity account = findByAccountNumber(accountNumber);
+
+        // if already withdrawn or closed
+        if (Boolean.TRUE.equals(account.getIsWithdrawn()) || account.getStatus() != BaseAccountEntity.AccountStatus.ACTIVE) {
+            throw new IllegalStateException("FD already closed/withdrawn or not active: " + accountNumber);
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate maturity = account.getMaturityDate();
+
+        BigDecimal principal = account.getPrincipalAmount();
+        BigDecimal originalRate = account.getInterestRate(); // e.g., 7.0
+
+        // default values
+        BigDecimal payout = BigDecimal.ZERO;
+        BigDecimal penaltyApplied = BigDecimal.ZERO;
+
+        // parse createdAt to compute elapsed time if needed
+        // createdAt stored in BaseAccountEntity as "yyyy-MM-dd hh:mm a"
+        LocalDateTime createdDateTime = null;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+            createdDateTime = LocalDateTime.parse(account.getCreatedAt(), formatter);
+        } catch (Exception e) {
+            // fallback: use maturity - tenureMonths to estimate created date
+            createdDateTime = LocalDateTime.now().minusMonths(account.getTenureMonths());
+        }
+
+        // Time elapsed in months (approx) between creation and now
+        long monthsElapsed = ChronoUnit.MONTHS.between(createdDateTime.toLocalDate().withDayOfMonth(1),
+                today.withDayOfMonth(1));
+        if (monthsElapsed < 0) monthsElapsed = 0;
+
+        // time in years for interest calculation
+        BigDecimal timeInYearsElapsed = BigDecimal.valueOf(monthsElapsed).divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+
+        if (today.isBefore(maturity)) {
+            // Premature withdrawal -> penalty: reduce interest rate by 3 percentage points
+            BigDecimal penaltyPercent = BigDecimal.valueOf(3);
+            BigDecimal adjustedRate = originalRate.subtract(penaltyPercent);
+            if (adjustedRate.compareTo(BigDecimal.ZERO) < 0) {
+                adjustedRate = BigDecimal.ZERO;
+            }
+
+            BigDecimal adjustedRateDecimal = adjustedRate.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+
+            // interest earned only for elapsed months (not full tenure)
+            BigDecimal interestEarned = principal.multiply(adjustedRateDecimal).multiply(timeInYearsElapsed);
+
+            payout = principal.add(interestEarned).setScale(2, RoundingMode.HALF_UP);
+
+            // penaltyApplied as difference between interest that would have been earned (without penalty) for elapsed period
+            BigDecimal originalRateDecimal = originalRate.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+            BigDecimal originalInterestForElapsed = principal.multiply(originalRateDecimal).multiply(timeInYearsElapsed);
+
+            penaltyApplied = originalInterestForElapsed.subtract(interestEarned).setScale(2, RoundingMode.HALF_UP);
+        } else {
+            // On or after maturity -> full maturity amount
+            payout = account.getMaturityAmount() == null ? principal : account.getMaturityAmount().setScale(2, RoundingMode.HALF_UP);
+            penaltyApplied = BigDecimal.ZERO;
+        }
+
+        // set fields and close FD
+        account.setWithdrawnDate(today);
+        account.setPenaltyApplied(penaltyApplied);
+        account.setPayoutAmount(payout);
+        account.setIsWithdrawn(true);
+        account.setStatus(BaseAccountEntity.AccountStatus.CLOSED); // requires AccountStatus enum has CLOSED
+
+        // Optionally update balance
+        account.setBalance(payout);
+
+        // Save a transaction record if your flow uses fdTransactionRepository
+//        try {
+//            FdTransactionEntity tx = new FdTransactionEntity();
+//            tx.setFdAccount(account);
+//            tx.setTransactionType("WITHDRAW");
+//            tx.setAmount(payout);
+//            tx.setTransactionDate(LocalDateTime.now());
+//            tx.setRemarks(request != null ? request.getReason() : "Premature/Normal withdraw");
+//            fdTransactionRepository.save(tx);
+//        } catch (Exception e) {
+//            // If you don't have FdTransactionEntity or repo, skip safely
+//        }
+
+
+        return fdAccountsRepository.save(account);
+    }
+
 }

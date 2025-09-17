@@ -3,6 +3,7 @@ package com.ojal.service;
 import com.ojal.model_entity.FdAccountsEntity;
 import com.ojal.model_entity.dto.request.FdAccountUpdateDto;
 import com.ojal.model_entity.dto.request.FdAccountsDto;
+import com.ojal.model_entity.dto.request.WithdrawRequest;
 
 import java.util.List;
 
@@ -26,4 +27,7 @@ public interface FdAccountsService {
     void deleteByAccountNumber(String accountNumber);
 
     int deleteAllByUserId(String userId);
+
+    FdAccountsEntity withdrawFd(String accountNumber, WithdrawRequest request);
+
 }

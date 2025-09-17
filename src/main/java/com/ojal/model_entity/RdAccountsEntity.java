@@ -34,6 +34,23 @@ public class RdAccountsEntity extends BaseAccountEntity {
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(name = "withdrawn_date")
+    private LocalDate withdrawnDate;
+
+    @Column(name = "penalty_applied")
+    private BigDecimal penaltyApplied = BigDecimal.ZERO;
+
+    @Column(name = "interest_earned")
+    private BigDecimal interestEarned = BigDecimal.ZERO;
+
+    @Column(name = "payout_amount")
+    private BigDecimal payoutAmount = BigDecimal.ZERO;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private BaseAccountEntity.AccountStatus status = BaseAccountEntity.AccountStatus.ACTIVE;
+
+
     @PrePersist
     protected void onCreate() {
         super.onCreate();
@@ -49,6 +66,28 @@ public class RdAccountsEntity extends BaseAccountEntity {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+
+    public RdAccountsEntity(){}
+
+    public RdAccountsEntity(UsersEntity user, BigDecimal depositAmount, BigDecimal interestRate,
+                            Integer tenureMonths, LocalDate maturityDate,
+                            BigDecimal maturityAmount, BigDecimal balance,
+                            LocalDate withdrawnDate, BigDecimal penaltyApplied,
+                            BigDecimal interestEarned, BigDecimal payoutAmount, AccountStatus status) {
+        this.user = user;
+        this.depositAmount = depositAmount;
+        this.interestRate = interestRate;
+        this.tenureMonths = tenureMonths;
+        this.maturityDate = maturityDate;
+        this.maturityAmount = maturityAmount;
+        this.balance = balance;
+        this.withdrawnDate = withdrawnDate;
+        this.penaltyApplied = penaltyApplied;
+        this.interestEarned = interestEarned;
+        this.payoutAmount = payoutAmount;
+        this.status = status;
     }
 
     // Getters and setters
@@ -106,5 +145,47 @@ public class RdAccountsEntity extends BaseAccountEntity {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public LocalDate getWithdrawnDate() {
+        return withdrawnDate;
+    }
+
+    public void setWithdrawnDate(LocalDate withdrawnDate) {
+        this.withdrawnDate = withdrawnDate;
+    }
+
+    public BigDecimal getPenaltyApplied() {
+        return penaltyApplied;
+    }
+
+    public void setPenaltyApplied(BigDecimal penaltyApplied) {
+        this.penaltyApplied = penaltyApplied;
+    }
+
+    public BigDecimal getInterestEarned() {
+        return interestEarned;
+    }
+
+    public void setInterestEarned(BigDecimal interestEarned) {
+        this.interestEarned = interestEarned;
+    }
+
+    public BigDecimal getPayoutAmount() {
+        return payoutAmount;
+    }
+
+    public void setPayoutAmount(BigDecimal payoutAmount) {
+        this.payoutAmount = payoutAmount;
+    }
+
+    @Override
+    public AccountStatus getStatus() {
+        return status;
+    }
+
+    @Override
+    public void setStatus(AccountStatus status) {
+        this.status = status;
     }
 }

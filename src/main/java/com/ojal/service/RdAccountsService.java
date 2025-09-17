@@ -26,4 +26,7 @@ public interface RdAccountsService {
     void deleteByAccountNumber(String accountNumber);
 
     int deleteAllByUserId(String userId);
+
+    RdAccountsEntity withdrawRdAccount(String accountNumber);
+
 }
